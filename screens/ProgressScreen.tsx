@@ -1,0 +1,108 @@
+import React from 'react';
+import { View, Text, ScrollView, Dimensions } from 'react-native';
+import { BarChart, PieChart, ProgressChart } from 'react-native-chart-kit';
+
+import StudyCalendar from 'components/studyHoursByDate';
+
+const screenWidth = Dimensions.get('window').width;
+
+const barData = {
+  labels: ['Math', 'Science', 'History'],
+  datasets: [
+    {
+      data: [8, 6, 4], // hours studied
+    },
+  ],
+};
+
+const pieData = [
+  {
+    name: 'Math',
+    population: 8,
+    color: '#2563eb',
+    legendFontColor: '#222',
+    legendFontSize: 14,
+  },
+  {
+    name: 'Science',
+    population: 6,
+    color: '#f59e42',
+    legendFontColor: '#222',
+    legendFontSize: 14,
+  },
+  {
+    name: 'History',
+    population: 4,
+    color: '#10b981',
+    legendFontColor: '#222',
+    legendFontSize: 14,
+  },
+];
+
+const progressData = {
+  labels: ['Math', 'Science', 'History'],
+  data: [0.8, 0.6, 0.4], // percent complete
+};
+
+const ProgressScreen = () => {
+  return (
+    <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <Text className="mb-4 text-2xl font-bold">Progress Overview</Text>
+
+      <Text className="mb-2 text-lg font-semibold">Hours Studied (Bar Chart)</Text>
+      <BarChart
+        data={barData}
+        width={screenWidth - 32}
+        height={220}
+        yAxisSuffix="h"
+        yAxisLabel=""
+        chartConfig={{
+          backgroundColor: '#fff',
+          backgroundGradientFrom: '#fff',
+          backgroundGradientTo: '#fff',
+          decimalPlaces: 1,
+          color: (opacity = 1) => `rgba(37, 99, 235, ${opacity})`,
+          labelColor: (opacity = 1) => `rgba(55, 65, 81, ${opacity})`,
+          style: { borderRadius: 16 },
+        }}
+        style={{ borderRadius: 16, marginBottom: 24 }}
+        fromZero
+        showValuesOnTopOfBars
+      />
+
+      <Text className="mb-2 text-lg font-semibold">Study Distribution (Pie Chart)</Text>
+      <PieChart
+        data={pieData}
+        width={screenWidth - 32}
+        height={180}
+        chartConfig={{
+          color: (opacity = 1) => `rgba(37, 99, 235, ${opacity})`,
+        }}
+        accessor="population"
+        backgroundColor="transparent"
+        paddingLeft="15"
+        absolute
+        style={{ marginBottom: 24 }}
+      />
+
+      <Text className="mb-2 text-lg font-semibold">Completion Progress</Text>
+      <ProgressChart
+        data={progressData}
+        width={screenWidth - 32}
+        height={180}
+        strokeWidth={16}
+        radius={32}
+        chartConfig={{
+          backgroundColor: '#fff',
+          backgroundGradientFrom: '#fff',
+          backgroundGradientTo: '#fff',
+          color: (opacity = 1) => `rgba(37, 99, 235, ${opacity})`,
+        }}
+        hideLegend={false}
+      />
+      <StudyCalendar />
+    </ScrollView>
+  );
+};
+
+export default ProgressScreen;
