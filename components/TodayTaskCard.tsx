@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, AppState, AppStateStatus } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Realm from 'realm';
 import { realmSchemas } from '../schema';
@@ -54,46 +54,94 @@ const TodayTaskCard = ({
     seconds: initialSeconds,
   });
 
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [startTimestamp, setStartTimestamp] = useState<number | null>(null);
+  const [remainingSeconds, setRemainingSeconds] = useState(
+    initialHours * 3600 + initialMinutes * 60 + initialSeconds
+  );
+  const appState = useRef(AppState.currentState);
+  // Convert timer state to total seconds
+  const getTotalSeconds = (t: typeof timer) => t.hours * 3600 + t.minutes * 60 + t.seconds;
+
+  // Convert seconds to {hours, minutes, seconds}
+  const secondsToTimer = (total: number) => ({
+    hours: Math.floor(total / 3600),
+    minutes: Math.floor((total % 3600) / 60),
+    seconds: total % 60,
+  });
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Reset timer when duration changes
-  //   useEffect(() => {
-  //     setTimer({ hours: initialHours, minutes: initialMinutes, seconds: initialSeconds });
-  //   }, [duration, initialHours, initialMinutes, initialSeconds]);
-
+  // Start timer
   const startTimer = () => {
     if (status === 'running') return;
     setStatus(id, 'running');
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      setTimer((prev) => {
-        let { hours, minutes, seconds } = prev;
-        if (hours === 0 && minutes === 0 && seconds === 0) {
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          completeTask();
-          return { hours: 0, minutes: 0, seconds: 0 };
-        }
-        if (seconds > 0) {
-          return { hours, minutes, seconds: seconds - 1 };
-        } else if (minutes > 0) {
-          return { hours, minutes: minutes - 1, seconds: 59 };
-        } else if (hours > 0) {
-          return { hours: hours - 1, minutes: 59, seconds: 59 };
-        }
-        return { hours: 0, minutes: 0, seconds: 0 };
-      });
-    }, 1000);
-  };
-  console.log(Realm.defaultPath);
-  const pauseTimer = () => {
-    setStatus(id, 'paused');
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    setTimerRunning(true);
+    setStartTimestamp(Date.now());
+    setRemainingSeconds(getTotalSeconds(timer));
   };
 
+  // Pause timer
+  const pauseTimer = () => {
+    setStatus(id, 'paused');
+    setTimerRunning(false);
+    if (startTimestamp) {
+      const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+      setRemainingSeconds((prev) => Math.max(prev - elapsed, 0));
+      setTimer(secondsToTimer(Math.max(remainingSeconds - elapsed, 0)));
+    }
+  };
+
+  // Resume timer
   const resumeTimer = () => {
     setStatus(id, 'running');
-    if (status !== 'running') startTimer();
+    setTimerRunning(true);
+    setStartTimestamp(Date.now());
   };
+  // Effect to handle ticking
+  useEffect(() => {
+    if (!timerRunning) return;
+    const interval = setInterval(() => {
+      if (startTimestamp) {
+        const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+        const left = Math.max(remainingSeconds - elapsed, 0);
+        setTimer(secondsToTimer(left));
+        if (left <= 0) {
+          clearInterval(interval);
+          setTimerRunning(false);
+          completeTask();
+        }
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timerRunning, startTimestamp, remainingSeconds]);
+
+  // Handle app state changes
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active' &&
+        timerRunning
+      ) {
+        // App has come to foreground, update timer
+        if (startTimestamp) {
+          const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
+          const left = Math.max(remainingSeconds - elapsed, 0);
+          setTimer(secondsToTimer(left));
+          if (left <= 0) {
+            setTimerRunning(false);
+            completeTask();
+          }
+        }
+      }
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timerRunning, startTimestamp, remainingSeconds]);
   // Complete the task
   const completeTask = async () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
