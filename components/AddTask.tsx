@@ -8,11 +8,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Switch,
 } from 'react-native';
 import Realm from 'realm';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import * as Notifications from 'expo-notifications';
 
 import Input from 'components/Input';
 import DateTime from 'components/DateTime';
@@ -112,54 +110,7 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
           Alert.alert('Success', 'Task added!');
         }
       });
-      if (
-        sendNotification &&
-        startDate &&
-        endDate &&
-        startTime &&
-        Array.isArray(frequency) &&
-        frequency.some(Boolean)
-      ) {
-        await Notifications.requestPermissionsAsync();
 
-        // Loop through each day from startDate to endDate
-        let current = new Date(startDate);
-        current.setHours(0, 0, 0, 0);
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-
-        while (current <= end) {
-          // 0 = Monday, 6 = Sunday (your frequency array)
-          const weekday = (current.getDay() + 6) % 7;
-          if (frequency[weekday]) {
-            // Set notification time for this day
-            const notifDate = new Date(
-              current.getFullYear(),
-              current.getMonth(),
-              current.getDate(),
-              startTime.getHours(),
-              startTime.getMinutes(),
-              0,
-              0
-            );
-            // 5 minutes before start time
-            const notificationTime = new Date(notifDate.getTime() - 5 * 60 * 1000);
-            // Only schedule if notification time is in the future and before endDate
-            if (notificationTime > new Date() && notifDate <= end) {
-              await Notifications.scheduleNotificationAsync({
-                content: {
-                  title: 'Task Reminder',
-                  body: `Your task "${title}" starts in 5 minutes!`,
-                  sound: true,
-                },
-                trigger: notificationTime,
-              });
-            }
-          }
-          // Move to next day
-          current.setDate(current.getDate() + 1);
-        }
-      }
       onClose();
     } catch (e) {
       console.error('Error saving task:', e);
@@ -261,10 +212,7 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
             {/* Frequency Input */}
             <Frequency value={frequency} onChange={setFrequency} />
             {/* Notification Checkbox */}
-            <View className="mb-2 mt-2 w-full flex-row items-center">
-              <Switch value={sendNotification} onValueChange={setSendNotification} />
-              <Text className="ml-2">Send Notification</Text>
-            </View>
+
             <TouchableOpacity
               className="mt-2 w-full rounded bg-blue-600 p-2"
               onPress={handleAddTask}>
