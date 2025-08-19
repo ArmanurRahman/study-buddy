@@ -1,36 +1,24 @@
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, AppState, AppStateStatus } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Realm from 'realm';
 import { realmSchemas } from '../schema';
 
 import TimerModal from './Timer';
+import { TaskStatusType } from '../types';
+import { getTotalSeconds, parseDuration, secondsToTimer, timeObjectToMinutes } from '../utils/time';
 
 type TodayTaskCardProps = {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   duration: string;
   streak?: string;
   runningTaskId?: string | null;
-  status: 'idle' | 'running' | 'paused' | 'completed';
-  setStatus: (id: string, status: 'idle' | 'running' | 'paused' | 'completed') => void;
+  status: TaskStatusType;
+  setStatus: (id: string, status: TaskStatusType) => void;
   isNoTaskRunning: boolean;
 };
-
-// Helper to parse duration string like "1h 30m 20s"
-function parseDuration(duration: string) {
-  let hours = 0,
-    minutes = 0,
-    seconds = 0;
-  const hMatch = duration.match(/(\d+)\s*h/);
-  const mMatch = duration.match(/(\d+)\s*m/);
-  const sMatch = duration.match(/(\d+)\s*s/);
-  if (hMatch) hours = parseInt(hMatch[1]);
-  if (mMatch) minutes = parseInt(mMatch[1]);
-  if (sMatch) seconds = parseInt(sMatch[1]);
-  return { hours, minutes, seconds };
-}
 
 const TodayTaskCard = ({
   id,
@@ -60,15 +48,7 @@ const TodayTaskCard = ({
     initialHours * 3600 + initialMinutes * 60 + initialSeconds
   );
   const appState = useRef(AppState.currentState);
-  // Convert timer state to total seconds
-  const getTotalSeconds = (t: typeof timer) => t.hours * 3600 + t.minutes * 60 + t.seconds;
 
-  // Convert seconds to {hours, minutes, seconds}
-  const secondsToTimer = (total: number) => ({
-    hours: Math.floor(total / 3600),
-    minutes: Math.floor((total % 3600) / 60),
-    seconds: total % 60,
-  });
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Start timer
@@ -166,6 +146,7 @@ const TodayTaskCard = ({
             date: todayDate,
             status: 'completed',
             updatedAt: new Date(),
+            passedTime: timeObjectToMinutes(timer),
           });
         }
         // / --- Streak Logic (considering frequency) ---

@@ -71,16 +71,17 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
 
   // Save or update task in Realm database
   const handleAddTask = async () => {
-    if (!title) {
-      Alert.alert('Validation', 'Title is required');
+    if (!title || (duration.hours === '' && duration.minutes === '')) {
+      Alert.alert('Validation', 'Title and duration are required');
       return;
     }
-    const realm = await Realm.open({ schema: realmSchemas });
+    let realm: Realm | undefined;
     try {
+      realm = await Realm.open({ schema: realmSchemas });
       realm.write(() => {
         if (editTask && editTask.id) {
           // Update existing task
-          const task = realm.objectForPrimaryKey('Task', new Realm.BSON.ObjectId(editTask.id));
+          const task = realm?.objectForPrimaryKey('Task', new Realm.BSON.ObjectId(editTask.id));
           if (task) {
             task.title = title;
             task.description = description;
@@ -94,7 +95,7 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
           Alert.alert('Success', 'Task updated!');
         } else {
           // Create new task
-          realm.create('Task', {
+          realm?.create('Task', {
             _id: new Realm.BSON.ObjectId(),
             title,
             description,
@@ -116,7 +117,7 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
       console.error('Error saving task:', e);
       Alert.alert('Error', 'Could not save task.');
     } finally {
-      realm.close();
+      realm?.close();
     }
   };
 

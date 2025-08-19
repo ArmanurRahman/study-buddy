@@ -1,44 +1,43 @@
-import React, { useState } from 'react';
-import { Text, TouchableOpacity, View, ScrollView, Dimensions } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+import { useCallback, useState, useEffect } from 'react';
+import { Text, TouchableOpacity, View, ScrollView, Dimensions, RefreshControl } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
-
-const studyPlans = [
-  {
-    id: '1',
-    title: 'Math Study Plan',
-    description: 'A comprehensive plan to master math concepts.',
-    streak: 5,
-  },
-  {
-    id: '2',
-    title: 'Science Study Plan',
-    description: 'Focused study on biology and chemistry.',
-    streak: 2,
-  },
-  {
-    id: '3',
-    title: 'History Study Plan',
-    description: 'In-depth study of world history.',
-    streak: 3,
-  },
-];
-
-// Example data for the bar chart
-const studyData = {
-  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-  datasets: [
-    {
-      data: [2, 1.5, 3, 2.5, 1, 0, 2], // hours studied each day
-    },
-  ],
-};
+import { useTodayTasks } from 'hooks/useTodayTasks';
+import Streak from '../components/Streak';
+import { getWeeklyStudyData } from '../utils/db';
+import { WEEK_DAYS } from '../utils/enum';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
 const HomeScreen = () => {
   const [checked, setChecked] = useState<{ [id: string]: boolean }>({});
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const today = new Date();
+  const todayTasks = useTodayTasks(today, refreshKey);
+  const [studyData, setStudyData] = useState({
+    labels: WEEK_DAYS,
+    datasets: [{ data: [0, 0, 0, 0, 0, 0, 0] }],
+  });
+
+  useEffect(() => {
+    (async () => {
+      const data = await getWeeklyStudyData();
+      setStudyData((prev) => ({
+        ...prev,
+        datasets: [{ data }],
+      }));
+    })();
+  }, [refreshKey]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshKey((k) => k + 1);
+      setRefreshing(false);
+    }, 2000);
+  }, []);
 
   const toggleCheck = (id: string) => {
     setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -48,12 +47,15 @@ const HomeScreen = () => {
       <View className="flex-1 bg-white p-4" style={{ height: screenHeight }}>
         {/* Todays Study Plans */}
         <View
-          className="mb-4 flex items-center rounded-lg bg-white p-6 py-2 shadow-sm"
+          className="mb-4 flex items-center rounded-lg bg-white p-6 py-2 shadow-lg"
           style={{ height: screenHeight * 0.25 }}>
           <Text className="mb-4 text-xl font-bold">Today Study Plans</Text>
-          <ScrollView className="max-h-96 w-full">
+          <ScrollView
+            className="max-h-96 w-full"
+            style={{ flex: 1, backgroundColor: 'white' }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
             <View className="flex gap-2">
-              {studyPlans.map((plan) => (
+              {todayTasks.map((plan) => (
                 <TouchableOpacity
                   key={plan.id}
                   activeOpacity={0.7}
@@ -80,20 +82,29 @@ const HomeScreen = () => {
 
         {/* Time studied today (Bar Chart) */}
         <View
-          className="mb-4 flex w-full items-center rounded-lg bg-white p-6 py-2 shadow-sm"
-          style={{ height: screenHeight * 0.3 }}>
+          className="mb-4 flex w-full items-center rounded-lg bg-white p-6 py-2 shadow-lg"
+          style={{ height: screenHeight * 0.3, overflow: 'hidden' }}>
           <Text className="mb-4 text-xl font-bold">Time Studied This Week</Text>
           <BarChart
             data={studyData}
-            width={screenWidth - 48}
+            width={screenWidth - 24}
             height={screenHeight * 0.3 - 70}
-            yAxisSuffix="h"
+            yAxisSuffix="Min"
             yAxisLabel=""
+            yLabelsOffset={10}
+            segments={
+              Math.max(...(studyData.datasets[0]?.data || [0])) <= 0
+                ? 1
+                : Math.min(
+                    4,
+                    Math.max(2, Math.ceil(Math.max(...(studyData.datasets[0]?.data || [0])) / 2))
+                  )
+            }
             chartConfig={{
               backgroundColor: '#fff',
               backgroundGradientFrom: '#fff',
               backgroundGradientTo: '#fff',
-              decimalPlaces: 1,
+              decimalPlaces: 0,
               color: (opacity = 1) => `rgba(37, 99, 235, ${opacity})`,
               labelColor: (opacity = 1) => `rgba(55, 65, 81, ${opacity})`,
               style: { borderRadius: 16 },
@@ -101,6 +112,7 @@ const HomeScreen = () => {
             }}
             style={{
               borderRadius: 16,
+              marginLeft: -20,
             }}
             fromZero
             showValuesOnTopOfBars
@@ -109,16 +121,16 @@ const HomeScreen = () => {
 
         {/* Current streak */}
         <View
-          className="mb-2 flex w-full items-center rounded-lg bg-white p-6 py-2 shadow-sm"
+          className="mb-2 flex w-full items-center rounded-lg bg-white p-6 py-2 shadow-lg"
           style={{ height: screenHeight * 0.18 }}>
           <Text className="mb-4 text-xl font-bold">Current Streak</Text>
-          <ScrollView className="w-full">
-            {studyPlans.map((plan) => (
+          <ScrollView
+            className="w-full"
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+            {todayTasks.map((plan) => (
               <View key={plan.id} className="mb-2 flex-row items-center justify-between">
                 <Text className="text-lg font-semibold">{plan.title}</Text>
-                <Text className="text-base font-semibold text-orange-500">
-                  🔥 {plan.streak} day{plan.streak !== 1 ? 's' : ''}
-                </Text>
+                <Streak streak={plan.streak || 0} />
               </View>
             ))}
           </ScrollView>
