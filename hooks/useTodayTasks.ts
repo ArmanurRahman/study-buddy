@@ -31,6 +31,8 @@ export function useTodayTasks(today: Date, refreshKey?: number) {
           endDate: task.endDate,
           streak: task.streak,
           startTime: task.startTime,
+          frequency: task.frequency ? JSON.parse(task.frequency) : [],
+          category: task.category,
         }));
       setTodayTasks(tasks);
     })();

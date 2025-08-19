@@ -6,11 +6,12 @@ import AddTask from '../components/AddTask';
 import { formatDuration } from '../utils/time';
 import { frequencyToSentence } from '../utils/frequency';
 import { realmSchemas } from '../schema';
+import { Task } from 'types';
 
 const TasksScreen = () => {
   const [addTaskModalVisible, setAddTaskModalVisible] = useState(false);
-  const [editTask, setEditTask] = useState<any | null>(null);
-  const [allTasks, setAllTasks] = useState<any[]>([]);
+  const [editTask, setEditTask] = useState<Task | null>(null);
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [refreshFlag, setRefreshFlag] = useState(0);
 
   useEffect(() => {
@@ -20,9 +21,11 @@ const TasksScreen = () => {
       const tasks = realm.objects('Task').map((task: any) => ({
         id: task._id.toHexString ? task._id.toHexString() : String(task._id),
         title: task.title,
+        category: task.category,
         description: task.description,
         duration: task.duration,
         streak: task.streak ?? 0,
+        startTime: task.startTime ? new Date(task.startTime) : undefined,
         frequency: task.frequency ? JSON.parse(task.frequency) : [],
         startDate: task.startDate ? new Date(task.startDate) : undefined,
         endDate: task.endDate ? new Date(task.endDate) : undefined,

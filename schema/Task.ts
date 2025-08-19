@@ -4,6 +4,7 @@ const TaskSchema = {
   properties: {
     _id: 'objectId',
     title: 'string',
+    category: 'string',
     description: 'string',
     startDate: 'date?',
     endDate: 'date?',

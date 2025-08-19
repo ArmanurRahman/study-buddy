@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  FlatList,
 } from 'react-native';
 import Realm from 'realm';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -17,10 +18,12 @@ import DateTime from 'components/DateTime';
 import Clock from './Clock';
 import Frequency from './Frequency';
 import { realmSchemas } from '../schema';
+import { DEFAULT_CATEGORIES } from '../utils/enum';
+import { Task } from 'types';
 
 type AddTaskProps = {
   onClose: (isCloseOnly?: boolean) => void;
-  editTask?: any | null;
+  editTask?: Task | null;
 };
 
 const AddTask = ({ onClose, editTask }: AddTaskProps) => {
@@ -35,11 +38,21 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
   const [startTime, setStartTime] = useState<Date | undefined>(undefined);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [sendNotification, setSendNotification] = useState(false);
+  const [category, setCategory] = useState('');
+  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
+  const [categoryInput, setCategoryInput] = useState('');
+  const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
 
   // Prefill state if editing
   useEffect(() => {
     if (editTask) {
       setTitle(editTask.title || '');
+      setCategory(editTask.category || '');
+      setCategoryInput(editTask.category || '');
+      // merge editTask.category into categories if not present
+      if (editTask.category && !categories.includes(editTask.category)) {
+        setCategories((prev) => [...prev, editTask.category]);
+      }
       setDescription(editTask.description || '');
       setStartDate(editTask.startDate ? new Date(editTask.startDate) : undefined);
       setEndDate(editTask.endDate ? new Date(editTask.endDate) : undefined);
@@ -69,10 +82,35 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
     }
   }, [editTask]);
 
+  // Fetch categories from DB and merge with default categories
+  useEffect(() => {
+    let realm: Realm;
+    (async () => {
+      realm = await Realm.open({ schema: realmSchemas });
+      const tasks = realm.objects('Task');
+      const dbCategories = Array.from(
+        new Set(
+          tasks.map((task: any) => task.category).filter((cat) => !!cat && typeof cat === 'string')
+        )
+      );
+      // Merge and deduplicate
+      setCategories(Array.from(new Set([...DEFAULT_CATEGORIES, ...dbCategories])));
+      realm.close();
+    })();
+  }, []);
+
   // Save or update task in Realm database
   const handleAddTask = async () => {
-    if (!title || (duration.hours === '' && duration.minutes === '')) {
-      Alert.alert('Validation', 'Title and duration are required');
+    if (!title) {
+      Alert.alert('Validation', 'Title is required');
+      return;
+    }
+    if (duration.hours === '' && duration.minutes === '') {
+      Alert.alert('Validation', 'Duration is required');
+      return;
+    }
+    if (!category) {
+      Alert.alert('Validation', 'Please select or add a category');
       return;
     }
     let realm: Realm | undefined;
@@ -84,6 +122,7 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
           const task = realm?.objectForPrimaryKey('Task', new Realm.BSON.ObjectId(editTask.id));
           if (task) {
             task.title = title;
+            task.category = category;
             task.description = description;
             task.startDate = startDate;
             task.endDate = endDate;
@@ -98,6 +137,7 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
           realm?.create('Task', {
             _id: new Realm.BSON.ObjectId(),
             title,
+            category,
             description,
             startDate,
             endDate,
@@ -111,6 +151,10 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
           Alert.alert('Success', 'Task added!');
         }
       });
+      // Add new category to suggestions if it's not already present
+      if (category && !categories.includes(category)) {
+        setCategories((prev) => [...prev, category]);
+      }
 
       onClose();
     } catch (e) {
@@ -120,6 +164,10 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
       realm?.close();
     }
   };
+  // Filtered suggestions
+  const filteredCategories = categoryInput
+    ? categories.filter((cat) => cat.toLowerCase().includes(categoryInput.toLowerCase()))
+    : categories;
 
   return (
     <View
@@ -145,6 +193,47 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
               {editTask ? 'Edit Task' : 'Add New Task'}
             </Text>
             <Input label="Title" value={title} onChange={setTitle} />
+            {/* Category Input */}
+            <View className="relative w-full">
+              <Text className="mb-2">Category</Text>
+              <TextInput
+                value={categoryInput}
+                onChangeText={(text) => {
+                  setCategoryInput(text);
+                  setShowCategorySuggestions(true);
+                  setCategory(text); // Set as selected if user types a new one
+                }}
+                onFocus={() => setShowCategorySuggestions(true)}
+                placeholder="Type or select a category"
+                className="rounded-lg border border-gray-300 p-4 shadow-sm"
+              />
+              {showCategorySuggestions && filteredCategories.length > 0 && (
+                <View
+                  className="mt-1 max-h-32 rounded border border-gray-200 shadow"
+                  style={{
+                    position: 'absolute',
+                    top: 80,
+                    left: 0,
+                    right: 0,
+                    backgroundColor: 'white',
+                    zIndex: 10,
+                    overflow: 'hidden',
+                  }}>
+                  {filteredCategories.map((item) => (
+                    <TouchableOpacity
+                      key={item}
+                      onPress={() => {
+                        setCategory(item);
+                        setCategoryInput(item);
+                        setShowCategorySuggestions(false);
+                      }}
+                      style={{ padding: 10 }}>
+                      <Text>{item}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
             <View className="w-full">
               <Text className="mb-2">Description</Text>
               <TextInput

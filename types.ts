@@ -7,11 +7,12 @@ export interface Task {
   duration: string;
   startDate?: Date;
   endDate?: Date;
-  frequency?: string;
+  frequency?: string[];
   createdAt?: Date;
   streak?: number;
   sendNotification?: boolean;
   startTime?: Date;
+  category: string;
 }
 
 export interface TaskStatus {
