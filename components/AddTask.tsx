@@ -1,12 +1,23 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Switch,
+} from 'react-native';
 import Realm from 'realm';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import * as Notifications from 'expo-notifications';
 
 import Input from 'components/Input';
 import DateTime from 'components/DateTime';
 import Clock from './Clock';
 import Frequency from './Frequency';
-import TaskSchema from '../schema/Task';
 import { realmSchemas } from '../schema';
 
 type AddTaskProps = {
@@ -23,8 +34,10 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [frequency, setFrequency] = useState([false, false, false, false, false, false, false]);
   const [duration, setDuration] = useState({ hours: '', minutes: '' });
+  const [startTime, setStartTime] = useState<Date | undefined>(undefined);
+  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+  const [sendNotification, setSendNotification] = useState(false);
 
-  console.log('Editing task:', editTask);
   // Prefill state if editing
   useEffect(() => {
     if (editTask) {
@@ -41,6 +54,10 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
           minutes: mMatch ? mMatch[1] : '',
         });
       }
+      if (editTask.startTime) {
+        setStartTime(new Date(editTask.startTime));
+      }
+      setSendNotification(!!editTask.sendNotification);
       // Parse frequency (should be an array)
       if (editTask.frequency) {
         try {
@@ -73,6 +90,8 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
             task.endDate = endDate;
             task.duration = `${duration.hours || '0'}h ${duration.minutes || '0'}m`;
             task.frequency = JSON.stringify(frequency);
+            task.startTime = startTime;
+            task.sendNotification = sendNotification;
           }
           Alert.alert('Success', 'Task updated!');
         } else {
@@ -83,14 +102,64 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
             description,
             startDate,
             endDate,
+            startTime,
             duration: `${duration.hours || '0'}h ${duration.minutes || '0'}m`,
             frequency: JSON.stringify(frequency),
             streak: 0,
             createdAt: new Date(),
+            sendNotification,
           });
           Alert.alert('Success', 'Task added!');
         }
       });
+      if (
+        sendNotification &&
+        startDate &&
+        endDate &&
+        startTime &&
+        Array.isArray(frequency) &&
+        frequency.some(Boolean)
+      ) {
+        await Notifications.requestPermissionsAsync();
+
+        // Loop through each day from startDate to endDate
+        let current = new Date(startDate);
+        current.setHours(0, 0, 0, 0);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+
+        while (current <= end) {
+          // 0 = Monday, 6 = Sunday (your frequency array)
+          const weekday = (current.getDay() + 6) % 7;
+          if (frequency[weekday]) {
+            // Set notification time for this day
+            const notifDate = new Date(
+              current.getFullYear(),
+              current.getMonth(),
+              current.getDate(),
+              startTime.getHours(),
+              startTime.getMinutes(),
+              0,
+              0
+            );
+            // 5 minutes before start time
+            const notificationTime = new Date(notifDate.getTime() - 5 * 60 * 1000);
+            // Only schedule if notification time is in the future and before endDate
+            if (notificationTime > new Date() && notifDate <= end) {
+              await Notifications.scheduleNotificationAsync({
+                content: {
+                  title: 'Task Reminder',
+                  body: `Your task "${title}" starts in 5 minutes!`,
+                  sound: true,
+                },
+                trigger: notificationTime,
+              });
+            }
+          }
+          // Move to next day
+          current.setDate(current.getDate() + 1);
+        }
+      }
       onClose();
     } catch (e) {
       console.error('Error saving task:', e);
@@ -104,59 +173,108 @@ const AddTask = ({ onClose, editTask }: AddTaskProps) => {
     <View
       className="absolute bottom-0 left-0 right-0 top-0 items-center justify-center bg-black/50"
       style={{ width: '100%', height: '100%' }}>
-      <View className="max-w-4/5 flex w-4/5 items-center gap-4 rounded-lg bg-white p-6 shadow-lg">
-        <TouchableOpacity
-          className="absolute right-4 top-4"
-          onPress={() => onClose(true)}
-          activeOpacity={0.7}>
-          <Text className="text-2xl font-bold text-gray-600">X</Text>
-        </TouchableOpacity>
-        <Text className="mb-4 text-lg font-bold">{editTask ? 'Edit Task' : 'Add New Task'}</Text>
-        <Input label="Title" value={title} onChange={setTitle} />
-        <View className="w-full">
-          <Text className="mb-2">Description</Text>
-          <TextInput
-            value={description}
-            onChangeText={setDescription}
-            className="rounded-lg border border-gray-300 p-4 shadow-sm"
-            multiline={true}
-            style={{ minHeight: 80 }}
-          />
-        </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1, width: '100%', justifyContent: 'center', alignItems: 'center' }}
+        keyboardVerticalOffset={60}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }}
+          keyboardShouldPersistTaps="handled">
+          <View
+            className=" flex items-center gap-4 rounded-lg bg-white p-6 shadow-lg"
+            style={{ width: '95%' }}>
+            <TouchableOpacity
+              className="absolute right-4 top-4"
+              onPress={() => onClose(true)}
+              activeOpacity={0.7}>
+              <Text className="text-2xl font-bold text-gray-600">X</Text>
+            </TouchableOpacity>
+            <Text className="mb-4 text-lg font-bold">
+              {editTask ? 'Edit Task' : 'Add New Task'}
+            </Text>
+            <Input label="Title" value={title} onChange={setTitle} />
+            <View className="w-full">
+              <Text className="mb-2">Description</Text>
+              <TextInput
+                value={description}
+                onChangeText={setDescription}
+                className="rounded-lg border border-gray-300 p-4 shadow-sm"
+                multiline={true}
+                style={{ minHeight: 80 }}
+              />
+            </View>
 
-        {/* Start Date Picker */}
-        <View className="w-full flex-row justify-between gap-2">
-          <View className="min-w-36">
-            <Text className="mb-2">Start Date</Text>
-            <DateTime
-              date={startDate}
-              setDate={setStartDate}
-              showPicker={showStartPicker}
-              setShowPicker={setShowStartPicker}
-            />
+            {/* Start Date Picker */}
+            <View className="w-full flex-row justify-between gap-2">
+              <View className="min-w-36">
+                <Text className="mb-2">Start Date</Text>
+                <DateTime
+                  date={startDate}
+                  setDate={setStartDate}
+                  showPicker={showStartPicker}
+                  setShowPicker={setShowStartPicker}
+                />
+              </View>
+              {/* End Date Picker */}
+              <View className="min-w-36">
+                <Text className="mb-2">End Date</Text>
+                <DateTime
+                  date={endDate}
+                  setDate={setEndDate}
+                  showPicker={showEndPicker}
+                  setShowPicker={setShowEndPicker}
+                />
+              </View>
+            </View>
+            {/* --- Start Time Picker --- */}
+            <View className="w-full flex-row justify-between gap-2">
+              <View className="min-w-36">
+                <Text className="mb-2">Start Time</Text>
+                <TouchableOpacity
+                  className="rounded-lg border border-gray-300 p-4 shadow-sm"
+                  onPress={() => setShowStartTimePicker(true)}>
+                  <Text>
+                    {startTime
+                      ? startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                      : 'Select Start Time'}
+                  </Text>
+                </TouchableOpacity>
+                {showStartTimePicker && (
+                  <DateTimePicker
+                    value={startTime || new Date()}
+                    mode="time"
+                    is24Hour={true}
+                    display="default"
+                    onChange={(_, selectedTime) => {
+                      setShowStartTimePicker(false);
+                      if (selectedTime) setStartTime(selectedTime);
+                    }}
+                  />
+                )}
+              </View>
+              <View className="min-w-36">
+                {/* Clock Component for Duration */}
+                <Clock value={duration} onChange={setDuration} />
+              </View>
+            </View>
+
+            {/* Frequency Input */}
+            <Frequency value={frequency} onChange={setFrequency} />
+            {/* Notification Checkbox */}
+            <View className="mb-2 mt-2 w-full flex-row items-center">
+              <Switch value={sendNotification} onValueChange={setSendNotification} />
+              <Text className="ml-2">Send Notification</Text>
+            </View>
+            <TouchableOpacity
+              className="mt-2 w-full rounded bg-blue-600 p-2"
+              onPress={handleAddTask}>
+              <Text className="text-center text-white">
+                {editTask ? 'Update Task' : 'Add Task'}
+              </Text>
+            </TouchableOpacity>
           </View>
-          {/* End Date Picker */}
-          <View className="min-w-36">
-            <Text className="mb-2">End Date</Text>
-            <DateTime
-              date={endDate}
-              setDate={setEndDate}
-              showPicker={showEndPicker}
-              setShowPicker={setShowEndPicker}
-            />
-          </View>
-        </View>
-
-        {/* Clock Component for Duration */}
-        <Clock value={duration} onChange={setDuration} />
-
-        {/* Frequency Input */}
-        <Frequency value={frequency} onChange={setFrequency} />
-
-        <TouchableOpacity className="mt-2 w-full rounded bg-blue-600 p-2" onPress={handleAddTask}>
-          <Text className="text-center text-white">{editTask ? 'Update Task' : 'Add Task'}</Text>
-        </TouchableOpacity>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };

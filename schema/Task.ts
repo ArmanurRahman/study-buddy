@@ -11,6 +11,8 @@ const TaskSchema = {
     frequency: 'string?', // Store as JSON string or comma-separated
     createdAt: 'date',
     streak: 'int?',
+    sendNotification: 'bool?',
+    startTime: 'date?',
   },
   primaryKey: '_id',
 };

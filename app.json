@@ -1,6 +1,7 @@
 {
   "expo": {
-    "name": "my-expo-app",
+    "name": "Study Planner",
+    "description": "A study planner app to help you manage your tasks and time effectively.",
     "slug": "my-expo-app",
     "version": "1.0.0",
     "web": {
@@ -12,7 +13,7 @@
     },
     "plugins": [],
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/study-planner-icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -31,10 +32,11 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/study-planner-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.myexpoapp"
+      "package": "com.anonymous.myexpoapp",
+      "label": "Study Planner"
     },
     "extra": {
       "eas": {

@@ -32,6 +32,7 @@ const AppNavigator = () => {
           },
           tabBarActiveTintColor: '#2563eb',
           tabBarInactiveTintColor: 'gray',
+          tabBarHideOnKeyboard: true,
         })}>
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Today" component={TodayTask} />
