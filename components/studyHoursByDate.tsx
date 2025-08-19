@@ -1,6 +1,8 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
+import { realmSchemas } from 'schema';
+import { timeStringToHours } from 'utils/time';
 
 // Example: configure locale if needed
 LocaleConfig.locales['en'] = {
@@ -37,27 +39,16 @@ LocaleConfig.locales['en'] = {
 };
 LocaleConfig.defaultLocale = 'en';
 
-// Example study hours data for calendar
-const studyHoursByDate: Record<string, number> = {
-  '2025-08-01': 2,
-  '2025-08-02': 1.5,
-  '2025-08-03': 3,
-  '2025-08-04': 0,
-  '2025-08-05': 2.5,
-  '2025-08-06': 1,
-  '2025-08-07': 2,
-};
-
-const getMarkedDates = () => {
+const getMarkedDates = (studyMinutesByDate: Record<string, number>) => {
   const marked: Record<string, any> = {};
-  Object.entries(studyHoursByDate).forEach(([date, hours]) => {
+  Object.entries(studyMinutesByDate).forEach(([date, minutes]) => {
     marked[date] = {
       customStyles: {
         container: {
-          backgroundColor: hours > 0 ? '#2563eb' : '#e5e7eb',
+          backgroundColor: minutes > 0 ? '#2563eb' : '#e5e7eb',
         },
         text: {
-          color: hours > 0 ? '#fff' : '#9ca3af',
+          color: minutes > 0 ? '#fff' : '#9ca3af',
           fontWeight: 'bold',
         },
       },
@@ -67,24 +58,51 @@ const getMarkedDates = () => {
 };
 
 const StudyCalendar = () => {
+  const [studyMinutesByDate, setStudyMinutesByDate] = useState<Record<string, number>>({});
+  useEffect(() => {
+    (async () => {
+      const realm = await Realm.open({ schema: realmSchemas });
+      // Fetch all completed TaskStatus
+      const statuses = realm.objects('TaskStatus').filtered('status == "completed"');
+      const minutesByDate: Record<string, number> = {};
+
+      statuses.forEach((status: any) => {
+        const dateObj = new Date(status.date);
+        const dateStr = dateObj.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+        let minutes = 0;
+        if (typeof status.passedTime === 'number') {
+          minutes = status.passedTime;
+        } else if (typeof status.passedTime === 'string') {
+          minutes = timeStringToHours(status.passedTime) * 60;
+        }
+        minutesByDate[dateStr] = (minutesByDate[dateStr] || 0) + minutes;
+      });
+
+      setStudyMinutesByDate(minutesByDate);
+      realm.close();
+    })();
+  }, []);
+
   return (
     <View className="mb-6">
       <Text className="mb-2 text-lg font-semibold">Study Calendar</Text>
       <Calendar
         markingType={'custom'}
-        markedDates={getMarkedDates()}
+        markedDates={getMarkedDates(studyMinutesByDate)}
         style={{
           borderRadius: 12,
           overflow: 'hidden',
         }}
         dayComponent={({ date }) => {
-          const hours = studyHoursByDate[date.dateString];
+          const minutes = studyMinutesByDate[date.dateString];
           return (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ color: hours > 0 ? '#2563eb' : '#9ca3af', fontWeight: 'bold' }}>
+              <Text style={{ color: minutes > 0 ? '#2563eb' : '#9ca3af', fontWeight: 'bold' }}>
                 {date?.day}
               </Text>
-              {hours > 0 && <Text style={{ fontSize: 10, color: '#2563eb' }}>{hours}h</Text>}
+              {minutes > 0 && (
+                <Text style={{ fontSize: 10, color: '#2563eb' }}>{minutes / 60}h</Text>
+              )}
             </View>
           );
         }}

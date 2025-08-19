@@ -65,3 +65,9 @@ export function timeObjectToMinutes(time: {
 }): number {
   return time.hours * 60 + time.minutes;
 }
+
+// Convert a string like "1h 30m" or "45m" to total hours as a float
+export function timeStringToHours(duration: string): number {
+  const { hours, minutes, seconds } = parseDuration(duration);
+  return hours + minutes / 60 + seconds / 3600;
+}
