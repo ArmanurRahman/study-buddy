@@ -92,15 +92,15 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
         {/* Time studied today (Bar Chart) */}
         <View
           className="mb-4 flex w-full items-center rounded-lg bg-white p-6 py-2 shadow-lg"
-          style={{ height: screenHeight * 0.3, overflow: 'hidden' }}>
+          style={{ height: screenHeight * 0.3 }}>
           <Text className="mb-4 text-xl font-bold">Time Studied This Week</Text>
           <BarChart
             data={studyData}
-            width={screenWidth - 24}
+            width={screenWidth - 46}
             height={screenHeight * 0.3 - 70}
             yAxisSuffix="Min"
             yAxisLabel=""
-            yLabelsOffset={10}
+            yLabelsOffset={0}
             segments={
               Math.max(...(studyData.datasets[0]?.data || [0])) <= 0
                 ? 1
@@ -120,8 +120,8 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
               propsForDots: { r: '6', strokeWidth: '2', stroke: '#2563eb' },
             }}
             style={{
-              borderRadius: 16,
-              marginLeft: -20,
+              // borderRadius: 16,
+              marginRight: 16,
             }}
             fromZero
             showValuesOnTopOfBars

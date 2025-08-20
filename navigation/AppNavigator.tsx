@@ -14,7 +14,11 @@ const Stack = createStackNavigator();
 
 const HomeStack = () => (
   <Stack.Navigator>
-    <Stack.Screen name="HomeMain" component={HomeScreen} options={{ title: 'Home' }} />
+    <Stack.Screen
+      name="HomeMain"
+      component={HomeScreen}
+      options={{ title: 'Home', headerLeft: () => null, gestureEnabled: false }}
+    />
     <Stack.Screen name="StudyNow" component={StudyNowScreen} options={{ title: 'Study Now' }} />
   </Stack.Navigator>
 );
