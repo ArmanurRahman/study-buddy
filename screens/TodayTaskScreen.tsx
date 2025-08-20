@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import TodayTaskCard from '../components/TodayTaskCard';
 import { useTodayTasks } from 'hooks/useTodayTasks';
 
@@ -9,7 +9,7 @@ function isNoTaskRunning(taskStates: Record<string, TaskStatusType>) {
   return !Object.entries(taskStates).some(([id, status]) => status === 'running');
 }
 
-const TodayTaskScreen = () => {
+const TodayTaskScreen = ({ navigation }) => {
   const today = new Date();
   const todayTasks = useTodayTasks(today);
 
@@ -30,20 +30,22 @@ const TodayTaskScreen = () => {
   };
   return (
     <ScrollView>
-      <View className="flex-1 items-center justify-center bg-gray-50 p-4">
-        {todayTasks.map((task) => (
-          <TodayTaskCard
-            status={taskStates[task.id]}
-            setStatus={setStatus}
-            key={task.id}
-            id={task.id}
-            title={task.title}
-            description={task.description}
-            duration={task.duration}
-            isNoTaskRunning={isNoTaskRunning(taskStates)}
-          />
-        ))}
-      </View>
+      <TouchableOpacity onPress={() => navigation.navigate('StudyNow')}>
+        <View className="flex-1 items-center justify-center bg-gray-50 p-4">
+          {todayTasks.map((task) => (
+            <TodayTaskCard
+              status={taskStates[task.id]}
+              setStatus={setStatus}
+              key={task.id}
+              id={task.id}
+              title={task.title}
+              description={task.description}
+              duration={task.duration}
+              isNoTaskRunning={isNoTaskRunning(taskStates)}
+            />
+          ))}
+        </View>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
