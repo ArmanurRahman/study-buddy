@@ -1,13 +1,23 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
 import TodayTask from '../screens/TodayTaskScreen';
 import TasksScreen from '../screens/TasksScreen';
 import ProgressScreen from '../screens/ProgressScreen';
+import StudyNowScreen from '../screens/StudyNowScreen';
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+const HomeStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen name="HomeMain" component={HomeScreen} options={{ title: 'Home' }} />
+    <Stack.Screen name="StudyNow" component={StudyNowScreen} options={{ title: 'Study Now' }} />
+  </Stack.Navigator>
+);
 
 const AppNavigator = () => {
   return (
@@ -34,7 +44,17 @@ const AppNavigator = () => {
           tabBarInactiveTintColor: 'gray',
           tabBarHideOnKeyboard: true,
         })}>
-        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen
+          name="Home"
+          component={HomeStack}
+          options={{ headerShown: false }}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              e.preventDefault();
+              navigation.navigate('Home', { screen: 'HomeMain' });
+            },
+          })}
+        />
         <Tab.Screen name="Today" component={TodayTask} />
         <Tab.Screen name="Tasks" component={TasksScreen} />
         <Tab.Screen name="Progress" component={ProgressScreen} />

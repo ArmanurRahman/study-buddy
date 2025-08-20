@@ -22,3 +22,7 @@ export interface TaskStatus {
   updatedAt: Date;
   passedTime: number;
 }
+
+export interface TodaysTask extends Task {
+  status: TaskStatusType;
+}

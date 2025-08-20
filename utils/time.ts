@@ -1,4 +1,5 @@
 export function formatDuration(duration: string) {
+  if (!duration) return ''; // Handle empty or undefined duration
   // Supports formats like "1h 30m", "45m", "0h 20m", etc.
   const hMatch = duration.match(/(\d+)\s*h/);
   const mMatch = duration.match(/(\d+)\s*m/);

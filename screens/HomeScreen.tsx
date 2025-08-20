@@ -2,15 +2,24 @@ import { useCallback, useState, useEffect } from 'react';
 import { Text, TouchableOpacity, View, ScrollView, Dimensions, RefreshControl } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import { useTodayTasks } from 'hooks/useTodayTasks';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import Streak from '../components/Streak';
 import { getWeeklyStudyData } from '../utils/db';
 import { WEEK_DAYS } from '../utils/enum';
+import { formatDuration } from '../utils/time';
+import { TodaysTask } from 'types';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
-const HomeScreen = () => {
-  const [checked, setChecked] = useState<{ [id: string]: boolean }>({});
+type RootStackParamList = {
+  Home: undefined;
+  StudyNow: { task: TodaysTask };
+};
+
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
+
+const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -39,9 +48,6 @@ const HomeScreen = () => {
     }, 2000);
   }, []);
 
-  const toggleCheck = (id: string) => {
-    setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
   return (
     <>
       <View className="flex-1 bg-white p-4" style={{ height: screenHeight }}>
@@ -59,20 +65,23 @@ const HomeScreen = () => {
                 <TouchableOpacity
                   key={plan.id}
                   activeOpacity={0.7}
-                  onPress={() => toggleCheck(plan.id)}>
+                  onPress={() => navigation.navigate('StudyNow', { task: plan })}>
                   <View
                     className="p-2"
                     style={{
                       borderRadius: 8,
                       borderWidth: 2,
-                      borderColor: checked[plan.id] ? '#3b82f6' : '#e5e7eb',
+                      borderColor: plan.status === 'completed' ? '#3b82f6' : '#e5e7eb',
                       backgroundColor: '#fff',
                     }}>
                     <Text
-                      className={`text-lg font-semibold ${checked[plan.id] ? 'text-gray-400 line-through' : ''}`}
-                      style={{ textDecorationLine: checked[plan.id] ? 'line-through' : 'none' }}>
+                      className={`text-lg font-semibold ${plan.status === 'completed' ? 'text-gray-400 line-through' : ''}`}
+                      style={{
+                        textDecorationLine: plan.status === 'completed' ? 'line-through' : 'none',
+                      }}>
                       {plan.title}
                     </Text>
+                    <Text className="text-gray-600">{formatDuration(plan.duration)}</Text>
                   </View>
                 </TouchableOpacity>
               ))}
