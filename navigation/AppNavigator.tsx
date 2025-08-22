@@ -68,7 +68,7 @@ const CreatePlanStack = () => (
     <Stack.Screen
       name="PlanCategory"
       component={CategoryScreen}
-      options={({ route }) => ({
+      options={({ route }: { route: { params?: { edit?: boolean } } }) => ({
         title: route.params?.edit ? UPDATE_STUDY_PLAN_TITLE : STUDY_PLAN_TITLE,
         headerBackTitle: 'Back',
       })}
@@ -76,7 +76,7 @@ const CreatePlanStack = () => (
     <Stack.Screen
       name="PlanStartDate"
       component={StartDateScreen}
-      options={({ route }) => ({
+      options={({ route }: { route: { params?: { edit?: boolean } } }) => ({
         title: route.params?.edit ? UPDATE_STUDY_PLAN_TITLE : STUDY_PLAN_TITLE,
         headerBackTitle: 'Back',
       })}
@@ -84,7 +84,7 @@ const CreatePlanStack = () => (
     <Stack.Screen
       name="PlanEndDate"
       component={EndDateScreen}
-      options={({ route }) => ({
+      options={({ route }: { route: { params?: { edit?: boolean } } }) => ({
         title: route.params?.edit ? UPDATE_STUDY_PLAN_TITLE : STUDY_PLAN_TITLE,
         headerBackTitle: 'Back',
       })}
@@ -92,7 +92,7 @@ const CreatePlanStack = () => (
     <Stack.Screen
       name="PlanFrequency"
       component={FrequencyScreen}
-      options={({ route }) => ({
+      options={({ route }: { route: { params?: { edit?: boolean } } }) => ({
         title: route.params?.edit ? UPDATE_STUDY_PLAN_TITLE : STUDY_PLAN_TITLE,
         headerBackTitle: 'Back',
       })}

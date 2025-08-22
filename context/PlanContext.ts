@@ -68,7 +68,18 @@ interface ChangeTotalHoursAction {
   payload: number | null;
 }
 
+interface ChangePlanAction {
+  type: 'change_plan';
+  payload: PlanState;
+}
+
+interface ResetPlanAction {
+  type: 'reset_plan';
+}
+
 type PlanAction =
+  | ResetPlanAction
+  | ChangePlanAction
   | ChangeIdAction
   | ChangeTitleAction
   | ChangeDescriptionAction
@@ -99,9 +110,29 @@ const planReducer = (state: PlanState, action: PlanAction): PlanState => {
       return { ...state, frequency: action.payload };
     case 'change_total_hours':
       return { ...state, totalHours: action.payload };
+    case 'change_plan':
+      return { ...state, ...action.payload };
+    case 'reset_plan':
+      return defaultValue;
     default:
       return state;
   }
+};
+
+interface ChangePlan {
+  (dispatch: React.Dispatch<PlanAction>): (plan: PlanState) => void;
+}
+
+const changePlan: ChangePlan = (dispatch) => (plan: PlanState) => {
+  dispatch({ type: 'change_plan', payload: plan });
+};
+
+interface ResetPlan {
+  (dispatch: React.Dispatch<PlanAction>): () => void;
+}
+
+const resetPlan: ResetPlan = (dispatch) => () => {
+  dispatch({ type: 'reset_plan' });
 };
 
 interface ChangeId {
@@ -183,6 +214,8 @@ const changeTotalHours: ChangePlanTotalStudyTime = (dispatch) => (totalHours: nu
 export const { Provider, Context } = createDataContext(
   planReducer,
   {
+    resetPlan,
+    changePlan,
     changeId,
     changeTitle,
     changeDescription,

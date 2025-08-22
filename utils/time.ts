@@ -86,3 +86,8 @@ export const durationToString = (duration: { hours: string; minutes: string }) =
   const { hours, minutes } = duration;
   return `${hours || '0'}h ${minutes || '0'}m`;
 };
+
+export const stringToDuration = (duration: string) => {
+  const [hours, minutes] = duration.split(' ').map((part) => parseInt(part).toString() || '');
+  return { hours, minutes };
+};

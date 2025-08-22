@@ -1,52 +1,47 @@
-import { useState, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import LinearGradient from 'react-native-linear-gradient';
 
 import AddTask from '../components/AddTask';
-import { formatDuration } from '../utils/time';
+import { durationToString, formatDuration } from '../utils/time';
 import { frequencyToSentence } from '../utils/frequency';
-import { realmSchemas } from '../schema';
-import { Task } from 'types';
+import { Plans } from 'types';
+import { useAllPlans } from 'hooks/useAllPlans';
+import Streak from 'components/Streak';
+import CategoryIcon from 'components/CategoryIcon';
+import { Context as PlanContext } from 'context/PlanContext';
+import { RouteProp } from '@react-navigation/native';
 
 type RootStackParamList = {
-  AllPlans: undefined;
-  PlanTitle: undefined;
+  AllPlans?: { needRefresh?: boolean };
+  PlanTitle?: { edit: boolean };
 };
 
 type TasksScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, 'AllPlans'>;
+  route: RouteProp<RootStackParamList, 'AllPlans'>;
 };
 
-const AllPlansScreen = ({ navigation }: TasksScreenProps) => {
+const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
   const [addTaskModalVisible, setAddTaskModalVisible] = useState(false);
-  const [editTask, setEditTask] = useState<Task | null>(null);
-  const [allTasks, setAllTasks] = useState<Task[]>([]);
-  const [refreshFlag, setRefreshFlag] = useState(0);
+  const [editTask, setEditTask] = useState<Plans | null>(null);
+
+  const { changePlan, resetPlan } = useContext(PlanContext) as {
+    state: { title: string };
+    changePlan: (plan: Plans) => void;
+    resetPlan: () => void;
+  };
+
+  const { plans, setRefreshFlag } = useAllPlans();
 
   useEffect(() => {
-    let realm: Realm;
-    (async () => {
-      realm = await Realm.open({ schema: realmSchemas });
-      const tasks = realm.objects('Task').map((task: any) => ({
-        id: task._id.toHexString ? task._id.toHexString() : String(task._id),
-        title: task.title,
-        category: task.category,
-        description: task.description,
-        duration: task.duration,
-        streak: task.streak ?? 0,
-        startTime: task.startTime ? new Date(task.startTime) : undefined,
-        frequency: task.frequency ? JSON.parse(task.frequency) : [],
-        startDate: task.startDate ? new Date(task.startDate) : undefined,
-        endDate: task.endDate ? new Date(task.endDate) : undefined,
-      }));
-      setAllTasks(tasks);
-    })();
-
-    return () => {
-      if (realm && !realm.isClosed) realm.close();
-    };
-  }, [addTaskModalVisible, editTask, refreshFlag]);
+    if (route.params?.needRefresh) {
+      // Fetch plans again or perform any necessary updates
+      setRefreshFlag((prev) => prev + 1);
+    }
+  }, []);
 
   // Handler to close AddTask and refresh list
   const handleCloseAdd = (isCloseOnly = false) => {
@@ -66,62 +61,101 @@ const AllPlansScreen = ({ navigation }: TasksScreenProps) => {
   return (
     <View className="relative flex-1 bg-gray-50">
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {allTasks.map((task) => (
+        {plans.map((plan) => (
           <TouchableOpacity
-            key={task.id}
-            activeOpacity={0.9}
+            key={plan.id}
+            activeOpacity={0.92}
             delayLongPress={300}
-            onLongPress={() => setEditTask(task)}>
-            <View
-              className="flex w-full gap-2 bg-white shadow-lg"
-              style={{
-                borderWidth: 1,
-                borderColor: '#e5e7eb',
-                elevation: 4,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 8,
-                padding: 16,
-                borderRadius: 10,
-              }}>
-              <View className="mb-2 flex-row items-center">
-                <Ionicons
-                  name="book-outline"
-                  size={22}
-                  color="#2563eb"
-                  style={{ marginRight: 8 }}
-                />
-                <Text className="text-xl font-bold text-gray-900">{task.title}</Text>
+            onLongPress={() => {
+              changePlan(plan);
+              console.log('Editing plan:', plan);
+              navigation.navigate('PlanTitle', { edit: true });
+            }}
+            style={{
+              marginBottom: 18,
+              borderRadius: 18,
+              overflow: 'hidden',
+              shadowColor: '#2563eb',
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.1,
+              shadowRadius: 16,
+              elevation: 6,
+              backgroundColor: '#fff',
+            }}>
+            {/* Accent bar */}
+            <LinearGradient
+              colors={['#2563eb', '#f59e42']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{ height: 6, width: '100%' }}
+            />
+            <View style={{ padding: 20 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                <CategoryIcon category={plan.category} />
+                <Text
+                  style={{
+                    fontSize: 22,
+                    fontWeight: 'bold',
+                    color: '#1e293b',
+                    flex: 1,
+                    marginLeft: 8,
+                  }}>
+                  {plan.title}
+                </Text>
+                <View
+                  style={{
+                    backgroundColor: '#f1f5f9',
+                    borderRadius: 8,
+                    paddingHorizontal: 10,
+                    paddingVertical: 4,
+                    marginLeft: 8,
+                  }}>
+                  <Text style={{ color: '#2563eb', fontWeight: '600', fontSize: 13 }}>
+                    {plan.category || 'General'}
+                  </Text>
+                </View>
               </View>
-              <Text className="mb-3 text-gray-600">{task.description}</Text>
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center">
+              {plan.description ? (
+                <Text
+                  style={{
+                    color: '#64748b',
+                    fontSize: 16,
+                    marginBottom: 12,
+                    marginLeft: 2,
+                  }}>
+                  {plan.description}
+                </Text>
+              ) : null}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 6,
+                }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <Ionicons
                     name="time-outline"
                     size={18}
                     color="#2563eb"
                     style={{ marginRight: 4 }}
                   />
-                  <Text className="font-semibold text-blue-600">
-                    {formatDuration(task.duration)}
+                  <Text style={{ fontWeight: '600', color: '#2563eb', fontSize: 15 }}>
+                    {formatDuration(durationToString(plan.duration))}
                   </Text>
                 </View>
-                <View className="flex-row items-center">
-                  <Ionicons
-                    name="flame-outline"
-                    size={18}
-                    color="#f59e42"
-                    style={{ marginRight: 4 }}
-                  />
-                  <Text className="font-semibold text-orange-500">
-                    {task.streak} day{task.streak !== 1 ? 's' : ''}
-                  </Text>
-                </View>
+                <Streak streak={plan.streak || 0} />
               </View>
-              {task.frequency && (
-                <Text className="mt-2 text-sm text-gray-500">
-                  {frequencyToSentence(task.frequency)}
+              {plan.frequency && (
+                <Text
+                  style={{
+                    marginTop: 2,
+                    color: '#94a3b8',
+                    fontSize: 13,
+                    fontStyle: 'italic',
+                    marginLeft: 2,
+                  }}>
+                  {frequencyToSentence(plan.frequency)}
                 </Text>
               )}
             </View>
@@ -143,7 +177,10 @@ const AllPlansScreen = ({ navigation }: TasksScreenProps) => {
             elevation: 8,
           }}
           className="rounded-full bg-blue-600 p-4"
-          onPress={() => navigation.navigate('PlanTitle')}
+          onPress={() => {
+            resetPlan();
+            navigation.navigate('PlanTitle');
+          }}
           activeOpacity={0.8}>
           <Ionicons name="add" size={28} color="#fff" />
         </TouchableOpacity>
@@ -151,7 +188,7 @@ const AllPlansScreen = ({ navigation }: TasksScreenProps) => {
       {/* Modal for Add Task */}
       {addTaskModalVisible && <AddTask onClose={handleCloseAdd} />}
       {/* Modal for Edit Task */}
-      {editTask && <AddTask onClose={handleCloseEdit} editTask={editTask} />}
+      {/* {editTask && <AddTask onClose={handleCloseEdit} editTask={editTask} />} */}
     </View>
   );
 };

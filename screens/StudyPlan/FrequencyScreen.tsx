@@ -19,9 +19,9 @@ import { realmSchemas } from 'schema';
 import { durationToString } from 'utils/time';
 
 type RootStackParamList = {
-  AllPlans: undefined;
-  PlanFrequency?: { edit?: boolean };
-  PlanDetails?: { edit?: boolean };
+  AllPlans?: { needRefresh?: boolean };
+  PlanFrequency?: { edit?: boolean; needRefresh?: boolean };
+  PlanDetails?: { edit?: boolean; needRefresh?: boolean };
 };
 
 type TasksScreenProps = {
@@ -111,12 +111,12 @@ const FrequencyScreen = ({ navigation, route }: TasksScreenProps) => {
             createdAt: new Date(),
           });
           changeId(newId.toHexString());
-          navigation.navigate('PlanDetails', {
-            ...route.params,
-            edit: route.params?.edit ?? false,
-          });
           Alert.alert('Success', 'Plan added!');
         }
+        navigation.navigate('AllPlans', {
+          ...route.params,
+          needRefresh: true,
+        });
       });
     } catch (e) {
       console.error('Error saving plan:', e);
@@ -124,20 +124,6 @@ const FrequencyScreen = ({ navigation, route }: TasksScreenProps) => {
     } finally {
       realm?.close();
     }
-  };
-  console.log('totalHours:', totalHours);
-  const handleNext = () => {
-    handleAddUpdatePlan();
-    navigation.navigate('PlanDetails', {
-      ...route.params,
-      edit: route.params?.edit ?? false,
-    });
-  };
-
-  const handleSkip = () => {
-    changeDuration({ hours: '', minutes: '' });
-    changeFrequency([false, false, false, false, false, false, false]);
-    handleNext();
   };
 
   return (
@@ -186,7 +172,9 @@ const FrequencyScreen = ({ navigation, route }: TasksScreenProps) => {
               alignItems: 'center',
               marginBottom: 12,
             }}>
-            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>Create</Text>
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>
+              {route.params?.edit ? 'Update' : 'Create'}
+            </Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
