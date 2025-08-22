@@ -5,7 +5,7 @@ import Realm from 'realm';
 import { realmSchemas } from '../schema';
 
 import TimerModal from './Timer';
-import { TaskStatusType } from '../types';
+import { PlanStatusType } from '../types';
 import { getTotalSeconds, parseDuration, secondsToTimer, timeObjectToMinutes } from '../utils/time';
 
 type TodayTaskCardProps = {
@@ -15,8 +15,8 @@ type TodayTaskCardProps = {
   duration: string;
   streak?: string;
   runningTaskId?: string | null;
-  status: TaskStatusType;
-  setStatus: (id: string, status: TaskStatusType) => void;
+  status: PlanStatusType;
+  setStatus: (id: string, status: PlanStatusType) => void;
   isNoTaskRunning: boolean;
 };
 

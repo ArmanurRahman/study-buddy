@@ -7,7 +7,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import AddTask from '../components/AddTask';
 import { durationToString, formatDuration } from '../utils/time';
 import { frequencyToSentence } from '../utils/frequency';
-import { Plans } from 'types';
+import { Plan } from 'types';
 import { useAllPlans } from 'hooks/useAllPlans';
 import Streak from 'components/Streak';
 import CategoryIcon from 'components/CategoryIcon';
@@ -26,11 +26,11 @@ type TasksScreenProps = {
 
 const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
   const [addTaskModalVisible, setAddTaskModalVisible] = useState(false);
-  const [editTask, setEditTask] = useState<Plans | null>(null);
+  const [editTask, setEditTask] = useState<Plan | null>(null);
 
   const { changePlan, resetPlan } = useContext(PlanContext) as {
     state: { title: string };
-    changePlan: (plan: Plans) => void;
+    changePlan: (plan: Plan) => void;
     resetPlan: () => void;
   };
 

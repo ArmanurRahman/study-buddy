@@ -1,31 +1,44 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
+import type { RouteProp } from '@react-navigation/native';
+
 import TodayTaskCard from '../components/TodayTaskCard';
-import { useTodayTasks } from 'hooks/useTodayTasks';
+import { useTodayPlan } from 'hooks/useTodayPlan';
 
-import { TaskStatusType } from 'types';
+import { PlanStatusType } from 'types';
+import { StackNavigationProp } from 'node_modules/@react-navigation/stack/lib/typescript/src/types';
+import { durationToString } from 'utils/time';
 
-function isNoTaskRunning(taskStates: Record<string, TaskStatusType>) {
+function isNoTaskRunning(taskStates: Record<string, PlanStatusType>) {
   return !Object.entries(taskStates).some(([id, status]) => status === 'running');
 }
 
-const TodayTaskScreen = ({ navigation }) => {
+type RootStackParamList = {
+  TodayTaskScreen: undefined;
+  StudyNow: undefined;
+};
+
+type TasksScreenProps = {
+  navigation: StackNavigationProp<RootStackParamList, 'TodayTaskScreen'>;
+  route: RouteProp<RootStackParamList, 'TodayTaskScreen'>;
+};
+const TodayTaskScreen = ({ navigation }: TasksScreenProps) => {
   const today = new Date();
-  const todayTasks = useTodayTasks(today);
+  const todayTasks = useTodayPlan(today);
 
   console.log('Today Tasks:', todayTasks);
   // Use an object for taskStates: { [id]: status }
-  const [taskStates, setTaskStates] = useState<Record<string, TaskStatusType>>(
+  const [taskStates, setTaskStates] = useState<Record<string, PlanStatusType>>(
     todayTasks.reduce(
       (acc, task) => {
         acc[task.id] = 'idle';
         return acc;
       },
-      {} as Record<string, TaskStatusType>
+      {} as Record<string, PlanStatusType>
     )
   );
 
-  const setStatus = (id: string, status: TaskStatusType) => {
+  const setStatus = (id: string, status: PlanStatusType) => {
     setTaskStates((prev) => ({ ...prev, [id]: status }));
   };
   return (
@@ -40,7 +53,7 @@ const TodayTaskScreen = ({ navigation }) => {
               id={task.id}
               title={task.title}
               description={task.description}
-              duration={task.duration}
+              duration={durationToString(task.duration)}
               isNoTaskRunning={isNoTaskRunning(taskStates)}
             />
           ))}

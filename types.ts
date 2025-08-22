@@ -1,4 +1,4 @@
-export type TaskStatusType = 'idle' | 'running' | 'paused' | 'completed';
+export type PlanStatusType = 'idle' | 'running' | 'paused' | 'completed';
 
 export interface Task {
   id: string;
@@ -15,7 +15,7 @@ export interface Task {
   category: string;
 }
 
-export interface Plans {
+export interface Plan {
   id: string;
   title: string;
   description?: string;
@@ -39,6 +39,6 @@ export interface TaskStatus {
   passedTime: number;
 }
 
-export interface TodaysTask extends Task {
-  status: TaskStatusType;
+export interface TodaysPlan extends Plan {
+  status: PlanStatusType;
 }

@@ -1,20 +1,20 @@
 import { useCallback, useState, useEffect } from 'react';
 import { Text, TouchableOpacity, View, ScrollView, Dimensions, RefreshControl } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
-import { useTodayTasks } from 'hooks/useTodayTasks';
+import { useTodayPlan } from 'hooks/useTodayPlan';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import Streak from '../components/Streak';
 import { getWeeklyStudyData } from '../utils/db';
 import { WEEK_DAYS } from '../utils/enum';
-import { formatDuration } from '../utils/time';
-import { TodaysTask } from 'types';
+import { durationToString, formatDuration } from '../utils/time';
+import { TodaysPlan } from 'types';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
 type RootStackParamList = {
   Home: undefined;
-  StudyNow: { task: TodaysTask };
+  StudyNow: { task: TodaysPlan };
 };
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
@@ -24,7 +24,7 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
   const [refreshKey, setRefreshKey] = useState(0);
 
   const today = new Date();
-  const todayTasks = useTodayTasks(today, refreshKey);
+  const todayTasks = useTodayPlan(today, refreshKey);
   const [studyData, setStudyData] = useState({
     labels: WEEK_DAYS,
     datasets: [{ data: [0, 0, 0, 0, 0, 0, 0] }],
@@ -81,7 +81,9 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
                       }}>
                       {plan.title}
                     </Text>
-                    <Text className="text-gray-600">{formatDuration(plan.duration)}</Text>
+                    <Text className="text-gray-600">
+                      {formatDuration(durationToString(plan.duration))}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               ))}

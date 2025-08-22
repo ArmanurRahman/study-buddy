@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { realmSchemas } from 'schema';
-import { Plans } from 'types';
+import { Plan } from 'types';
 import { stringToDuration } from '../utils/time';
 
 export const useAllPlans = () => {
-  const [plans, setPlans] = useState<Plans[]>([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [refreshFlag, setRefreshFlag] = useState(0);
 
   useEffect(() => {
