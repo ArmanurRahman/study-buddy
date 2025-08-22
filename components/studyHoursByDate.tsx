@@ -62,8 +62,8 @@ const StudyCalendar = () => {
   useEffect(() => {
     (async () => {
       const realm = await Realm.open({ schema: realmSchemas });
-      // Fetch all completed TaskStatus
-      const statuses = realm.objects('TaskStatus').filtered('status == "completed"');
+      // Fetch all completed PlanStatus
+      const statuses = realm.objects('PlanStatus').filtered('status == "completed"');
       const minutesByDate: Record<string, number> = {};
 
       statuses.forEach((status: any) => {

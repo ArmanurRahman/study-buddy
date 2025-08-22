@@ -15,9 +15,9 @@ export async function getWeeklyStudyData(): Promise<number[]> {
   sunday.setDate(monday.getDate() + 6);
   sunday.setHours(23, 59, 59, 999);
 
-  // Fetch all completed TaskStatus for this week
+  // Fetch all completed PlanStatus for this week
   const statuses = realm
-    .objects('TaskStatus')
+    .objects('PlanStatus')
     .filtered('status == "completed" AND date >= $0 AND date <= $1', monday, sunday);
 
   // Prepare a map: { [weekday: number]: totalHours }
@@ -27,7 +27,7 @@ export async function getWeeklyStudyData(): Promise<number[]> {
     const date = new Date(status.date);
     const weekday = (date.getDay() + 6) % 7; // 0=Monday, 6=Sunday
 
-    // Use passedTime from TaskStatus
+    // Use passedTime from PlanStatus
     if (status.passedTime) {
       const mins = status.passedTime || 0;
       dailyTotals[weekday] += mins;

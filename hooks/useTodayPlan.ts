@@ -23,7 +23,7 @@ export function useTodayPlan(today: Date, refreshKey?: number) {
           return isTodayInRange(start, end, today);
         })
         .map((plan: any) => {
-          // Find today's TaskStatus for this plan
+          // Find today's PlanStatus for this plan
           const startOfDay = new Date(today);
           startOfDay.setHours(0, 0, 0, 0);
           const endOfDay = new Date(today);

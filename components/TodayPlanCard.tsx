@@ -45,7 +45,6 @@ const TodayPlanCard = ({
     minutes: initialMinutes,
     seconds: initialSeconds,
   });
-  console.log('Category:', category);
   const [timerRunning, setTimerRunning] = useState(false);
   const [startTimestamp, setStartTimestamp] = useState<number | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState(
@@ -138,13 +137,13 @@ const TodayPlanCard = ({
       realm.write(() => {
         // Try to find an existing status for this task and date
         let statusObj = realm
-          .objects('TaskStatus')
+          .objects('PlanStatus')
           .filtered('taskId == $0 && date == $1', new Realm.BSON.ObjectId(id), todayDate)[0];
         if (statusObj) {
           statusObj.status = 'completed';
           statusObj.updatedAt = new Date();
         } else {
-          realm.create('TaskStatus', {
+          realm.create('PlanStatus', {
             _id: new Realm.BSON.ObjectId(),
             taskId: new Realm.BSON.ObjectId(id),
             date: todayDate,
@@ -178,7 +177,7 @@ const TodayPlanCard = ({
           } else {
             // Find the last time this task was completed on any of the scheduled days (excluding today)
             const lastStatus = realm
-              .objects('TaskStatus')
+              .objects('PlanStatus')
               .filtered(
                 'taskId == $0 && status == "completed" && date < $1',
                 new Realm.BSON.ObjectId(id),
