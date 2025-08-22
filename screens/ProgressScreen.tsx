@@ -31,7 +31,6 @@ const ProgressScreen = () => {
       const realm = await Realm.open({ schema: realmSchemas });
       // Get all completed PlanStatus
       const statuses = realm.objects('PlanStatus').filtered('status == "completed"');
-      console.log('Fetched PlanStatus:', statuses);
       // Map: { category: totalHours }
       const categoryTotals: Record<string, number> = {};
       statuses.forEach((status: any) => {

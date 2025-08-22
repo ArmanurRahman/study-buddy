@@ -2,8 +2,9 @@ import { useRef, useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, AppState, AppStateStatus } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Realm from 'realm';
-import { realmSchemas } from '../schema';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 
+import { realmSchemas } from '../schema';
 import TimerModal from './Timer';
 import { PlanStatusType } from '../types';
 import { getTotalSeconds, parseDuration, secondsToTimer, timeObjectToMinutes } from '../utils/time';
@@ -34,6 +35,7 @@ const TodayPlanCard = ({
   isNoTaskRunning,
   category,
 }: TodayPlanCardProps) => {
+  const navigation = useNavigation<NavigationProp<any>>();
   const {
     hours: initialHours,
     minutes: initialMinutes,
@@ -138,14 +140,14 @@ const TodayPlanCard = ({
         // Try to find an existing status for this task and date
         let statusObj = realm
           .objects('PlanStatus')
-          .filtered('taskId == $0 && date == $1', new Realm.BSON.ObjectId(id), todayDate)[0];
+          .filtered('planId == $0 && date == $1', new Realm.BSON.ObjectId(id), todayDate)[0];
         if (statusObj) {
           statusObj.status = 'completed';
           statusObj.updatedAt = new Date();
         } else {
           realm.create('PlanStatus', {
             _id: new Realm.BSON.ObjectId(),
-            taskId: new Realm.BSON.ObjectId(id),
+            planId: new Realm.BSON.ObjectId(id),
             date: todayDate,
             status: 'completed',
             updatedAt: new Date(),
@@ -179,7 +181,7 @@ const TodayPlanCard = ({
             const lastStatus = realm
               .objects('PlanStatus')
               .filtered(
-                'taskId == $0 && status == "completed" && date < $1',
+                'planId == $0 && status == "completed" && date < $1',
                 new Realm.BSON.ObjectId(id),
                 todayDate
               )
@@ -221,6 +223,7 @@ const TodayPlanCard = ({
       });
       setStatus(id, 'completed');
       realm.close();
+      navigation.navigate('StudyComplete');
     } catch (e) {
       console.error('Error saving task status:', e);
     }

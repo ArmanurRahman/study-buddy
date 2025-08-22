@@ -15,7 +15,7 @@ function isNoTaskRunning(taskStates: Record<string, PlanStatusType>) {
 
 type RootStackParamList = {
   TodayMain?: {};
-  StudyNow?: { taskId: string };
+  StudyNow?: { planId: string };
 };
 
 type TodayPlanScreenProps = {

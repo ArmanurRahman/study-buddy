@@ -14,6 +14,7 @@ import StartDateScreen from 'screens/StudyPlan/StartDateScreen';
 import EndDateScreen from 'screens/StudyPlan/EndDateScreen';
 import FrequencyScreen from 'screens/StudyPlan/FrequencyScreen';
 import PlanDetails from 'screens/StudyPlan/PlanDetailsScreen';
+import StudyCompleteScreen from 'screens/StudyCompleteScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -39,6 +40,11 @@ const TodayStack = () => (
       options={{ title: 'Today', headerLeft: () => null, gestureEnabled: false }}
     />
     <Stack.Screen name="StudyNow" component={StudyNowScreen} options={{ title: 'Study Now' }} />
+    <Stack.Screen
+      name="StudyComplete"
+      component={StudyCompleteScreen}
+      options={{ title: 'Study Complete' }}
+    />
   </Stack.Navigator>
 );
 
