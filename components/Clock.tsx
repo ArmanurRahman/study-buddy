@@ -45,10 +45,9 @@ const Clock = ({ value = { hours: '', minutes: '' }, onChange }: ClockProps) => 
   };
 
   return (
-    <View className="w-full items-start">
-      <Text className="mb-2">Duration</Text>
+    <View className="w-full">
       <TouchableOpacity
-        className="mb-2 w-32 rounded border border-gray-300 p-2"
+        className="rounded border border-gray-300 p-2"
         onPress={() => setShowPicker(true)}>
         <Text className="text-lg">
           {time.getHours().toString().padStart(2, '0')}:

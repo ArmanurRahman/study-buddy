@@ -1,5 +1,5 @@
 // Helper to convert frequency array to plain sentence
-export function frequencyToSentence(freqArr: string[]): string {
+export function frequencyToSentence(freqArr: boolean[]): string {
   if (!freqArr.length) return '';
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const activeDays = days.filter((_, idx) => freqArr[idx]);

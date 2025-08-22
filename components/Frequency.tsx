@@ -27,7 +27,6 @@ const Frequency = ({
 
   return (
     <View className="mb-4 w-full">
-      <Text className="mb-2 font-medium">Select Days</Text>
       <View className="flex-row justify-between">
         {days.map((day, idx) => (
           <TouchableOpacity

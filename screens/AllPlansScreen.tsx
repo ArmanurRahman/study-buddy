@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 import AddTask from '../components/AddTask';
 import { formatDuration } from '../utils/time';
@@ -8,7 +9,16 @@ import { frequencyToSentence } from '../utils/frequency';
 import { realmSchemas } from '../schema';
 import { Task } from 'types';
 
-const TasksScreen = () => {
+type RootStackParamList = {
+  AllPlans: undefined;
+  PlanTitle: undefined;
+};
+
+type TasksScreenProps = {
+  navigation: StackNavigationProp<RootStackParamList, 'AllPlans'>;
+};
+
+const AllPlansScreen = ({ navigation }: TasksScreenProps) => {
   const [addTaskModalVisible, setAddTaskModalVisible] = useState(false);
   const [editTask, setEditTask] = useState<Task | null>(null);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
@@ -133,7 +143,7 @@ const TasksScreen = () => {
             elevation: 8,
           }}
           className="rounded-full bg-blue-600 p-4"
-          onPress={() => setAddTaskModalVisible(true)}
+          onPress={() => navigation.navigate('PlanTitle')}
           activeOpacity={0.8}>
           <Ionicons name="add" size={28} color="#fff" />
         </TouchableOpacity>
@@ -146,4 +156,4 @@ const TasksScreen = () => {
   );
 };
 
-export default TasksScreen;
+export default AllPlansScreen;

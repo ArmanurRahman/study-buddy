@@ -1,3 +1,5 @@
+import { format } from 'date-fns';
+
 export function formatDuration(duration: string) {
   if (!duration) return ''; // Handle empty or undefined duration
   // Supports formats like "1h 30m", "45m", "0h 20m", etc.
@@ -72,3 +74,15 @@ export function timeStringToHours(duration: string): number {
   const { hours, minutes, seconds } = parseDuration(duration);
   return hours + minutes / 60 + seconds / 3600;
 }
+
+export const humanReadableDate = (dateStr?: string) => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+  return format(date, 'PPP'); // e.g., Jan 1, 2025
+};
+
+export const durationToString = (duration: { hours: string; minutes: string }) => {
+  const { hours, minutes } = duration;
+  return `${hours || '0'}h ${minutes || '0'}m`;
+};

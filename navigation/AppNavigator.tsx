@@ -1,16 +1,25 @@
-import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
 import TodayTask from '../screens/TodayTaskScreen';
-import TasksScreen from '../screens/TasksScreen';
+import AllPlansScreen from '../screens/AllPlansScreen';
 import ProgressScreen from '../screens/ProgressScreen';
 import StudyNowScreen from '../screens/StudyNowScreen';
+import TitleScreen from 'screens/StudyPlan/TitleScreen';
+import DescriptionScreen from 'screens/StudyPlan/DescriptionScreen';
+import CategoryScreen from 'screens/StudyPlan/CategoryScreen';
+import StartDateScreen from 'screens/StudyPlan/StartDateScreen';
+import EndDateScreen from 'screens/StudyPlan/EndDateScreen';
+import FrequencyScreen from 'screens/StudyPlan/FrequencyScreen';
+import PlanDetails from 'screens/StudyPlan/PlanDetailsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+
+const STUDY_PLAN_TITLE = 'Create Study Plan';
+const UPDATE_STUDY_PLAN_TITLE = 'Update Study Plan';
 
 const HomeStack = () => (
   <Stack.Navigator>
@@ -30,6 +39,84 @@ const TodayStack = () => (
       options={{ title: 'Today', headerLeft: () => null, gestureEnabled: false }}
     />
     <Stack.Screen name="StudyNow" component={StudyNowScreen} options={{ title: 'Study Now' }} />
+  </Stack.Navigator>
+);
+
+const CreatePlanStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="AllPlans"
+      component={AllPlansScreen}
+      options={{ title: 'All Plans', headerLeft: () => null, gestureEnabled: false }}
+    />
+    <Stack.Screen
+      name="PlanTitle"
+      component={TitleScreen}
+      options={({ route }: { route: { params?: { edit?: boolean } } }) => ({
+        title: route.params?.edit ? UPDATE_STUDY_PLAN_TITLE : STUDY_PLAN_TITLE,
+        headerBackTitle: 'Back',
+      })}
+    />
+    <Stack.Screen
+      name="PlanDescription"
+      component={DescriptionScreen}
+      options={({ route }: { route: { params?: { edit?: boolean } } }) => ({
+        title: route.params?.edit ? UPDATE_STUDY_PLAN_TITLE : STUDY_PLAN_TITLE,
+        headerBackTitle: 'Back',
+      })}
+    />
+    <Stack.Screen
+      name="PlanCategory"
+      component={CategoryScreen}
+      options={({ route }) => ({
+        title: route.params?.edit ? UPDATE_STUDY_PLAN_TITLE : STUDY_PLAN_TITLE,
+        headerBackTitle: 'Back',
+      })}
+    />
+    <Stack.Screen
+      name="PlanStartDate"
+      component={StartDateScreen}
+      options={({ route }) => ({
+        title: route.params?.edit ? UPDATE_STUDY_PLAN_TITLE : STUDY_PLAN_TITLE,
+        headerBackTitle: 'Back',
+      })}
+    />
+    <Stack.Screen
+      name="PlanEndDate"
+      component={EndDateScreen}
+      options={({ route }) => ({
+        title: route.params?.edit ? UPDATE_STUDY_PLAN_TITLE : STUDY_PLAN_TITLE,
+        headerBackTitle: 'Back',
+      })}
+    />
+    <Stack.Screen
+      name="PlanFrequency"
+      component={FrequencyScreen}
+      options={({ route }) => ({
+        title: route.params?.edit ? UPDATE_STUDY_PLAN_TITLE : STUDY_PLAN_TITLE,
+        headerBackTitle: 'Back',
+      })}
+    />
+    <Stack.Screen
+      name="PlanDetails"
+      component={PlanDetails}
+      options={({ navigation, route }) => ({
+        title: 'Study Plan Details',
+        headerBackTitle: 'Back',
+        headerLeft: () => null,
+        headerRight: () => (
+          <Ionicons
+            name="create-outline"
+            size={24}
+            color="#2563eb"
+            style={{ marginRight: 16 }}
+            onPress={() => {
+              navigation.navigate('PlanTitle', { ...route.params, edit: true });
+            }}
+          />
+        ),
+      })}
+    />
   </Stack.Navigator>
 );
 
@@ -80,7 +167,7 @@ const AppNavigator = () => {
             },
           })}
         />
-        <Tab.Screen name="Tasks" component={TasksScreen} />
+        <Tab.Screen name="Tasks" component={CreatePlanStack} options={{ headerShown: false }} />
         <Tab.Screen name="Progress" component={ProgressScreen} />
       </Tab.Navigator>
     </NavigationContainer>
