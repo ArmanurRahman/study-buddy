@@ -7,20 +7,23 @@ import { realmSchemas } from '../schema';
 import TimerModal from './Timer';
 import { PlanStatusType } from '../types';
 import { getTotalSeconds, parseDuration, secondsToTimer, timeObjectToMinutes } from '../utils/time';
+import CategoryIcon from './CategoryIcon';
+import Streak from './Streak';
 
-type TodayTaskCardProps = {
+type TodayPlanCardProps = {
   id: string;
   title: string;
   description?: string;
   duration: string;
-  streak?: string;
+  streak?: number;
   runningTaskId?: string | null;
   status: PlanStatusType;
   setStatus: (id: string, status: PlanStatusType) => void;
   isNoTaskRunning: boolean;
+  category: string;
 };
 
-const TodayTaskCard = ({
+const TodayPlanCard = ({
   id,
   title,
   description,
@@ -29,7 +32,8 @@ const TodayTaskCard = ({
   status,
   setStatus,
   isNoTaskRunning,
-}: TodayTaskCardProps) => {
+  category,
+}: TodayPlanCardProps) => {
   const {
     hours: initialHours,
     minutes: initialMinutes,
@@ -41,7 +45,7 @@ const TodayTaskCard = ({
     minutes: initialMinutes,
     seconds: initialSeconds,
   });
-
+  console.log('Category:', category);
   const [timerRunning, setTimerRunning] = useState(false);
   const [startTimestamp, setStartTimestamp] = useState<number | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState(
@@ -231,68 +235,157 @@ const TodayTaskCard = ({
   return (
     <>
       <View
-        className="mb-4 w-full rounded-lg bg-white p-4 shadow"
-        style={{ borderWidth: 1, borderColor: '#e5e7eb' }}>
-        <Text className="mb-2 text-xl font-bold">{title}</Text>
-        <Text className="mb-2 text-gray-600">{description}</Text>
-        <Text className="mb-4 font-semibold text-blue-600">Duration: {duration}</Text>
-        <Text className="mb-4 font-semibold text-blue-600">
-          Streak: {streak || 'No streak available'}
-        </Text>
-        <TouchableOpacity
-          className={`rounded py-2 ${
-            status === 'paused' && isNoTaskRunning
-              ? 'bg-yellow-600'
-              : isNoTaskRunning || status === 'running'
-                ? 'bg-blue-600'
-                : 'bg-gray-400'
-          }`}
-          onPress={() => {
-            setTimerVisible(true);
-            if (status === 'idle') startTimer();
-            else if (status === 'paused') resumeTimer();
+        style={{
+          width: '100%',
+          marginBottom: 18,
+          borderRadius: 18,
+          overflow: 'hidden',
+          shadowColor: '#2563eb',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.12,
+          shadowRadius: 16,
+          elevation: 6,
+          backgroundColor: '#fff',
+          borderWidth: 1,
+          borderColor: '#e5e7eb',
+        }}>
+        {/* Accent bar */}
+        <View
+          style={{
+            height: 5,
+            width: '100%',
+            backgroundColor:
+              status === 'completed'
+                ? '#10b981'
+                : status === 'running'
+                  ? '#2563eb'
+                  : status === 'paused'
+                    ? '#f59e42'
+                    : '#e5e7eb',
+            opacity: 0.9,
           }}
-          disabled={!(status === 'running' || isNoTaskRunning)}
-          activeOpacity={0.8}>
-          <View className="flex-row items-center justify-center">
-            <Text className="text-center font-bold text-white">
-              {status === 'running' || status === 'paused'
-                ? `${timer.hours ? timer.hours.toString().padStart(2, '0') + ':' : ''}${timer.minutes
-                    .toString()
-                    .padStart(2, '0')}:${timer.seconds.toString().padStart(2, '0')}`
-                : 'Start'}
+        />
+        <View style={{ padding: 20 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+            <CategoryIcon category={category} />
+            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#1e293b', flex: 1 }}>
+              {title}
             </Text>
-            {status === 'paused' ? (
+            {status === 'completed' && (
               <Ionicons
-                name="pause"
-                size={20}
-                color="#fff"
-                style={{ marginLeft: 8, alignSelf: 'flex-end' }}
+                name="checkmark-circle"
+                size={22}
+                color="#10b981"
+                style={{ marginLeft: 8 }}
               />
-            ) : status === 'running' ? (
-              <Ionicons
-                name="play"
-                size={20}
-                color="#fff"
-                style={{ marginLeft: 8, alignSelf: 'flex-end' }}
-              />
-            ) : (
-              <></>
+            )}
+            {status === 'running' && (
+              <Ionicons name="play-circle" size={22} color="#2563eb" style={{ marginLeft: 8 }} />
+            )}
+            {status === 'paused' && (
+              <Ionicons name="pause-circle" size={22} color="#f59e42" style={{ marginLeft: 8 }} />
             )}
           </View>
-        </TouchableOpacity>
-        {/* Complete Task Button */}
-        {status !== 'completed' && (
-          <TouchableOpacity
-            className="mt-3 rounded bg-green-600 py-2"
-            onPress={completeTask}
-            activeOpacity={0.8}>
-            <Text className="text-center font-bold text-white">Complete Task</Text>
-          </TouchableOpacity>
-        )}
-        {status === 'completed' && (
-          <Text className="mt-3 text-center font-bold text-green-600">Task Completed!</Text>
-        )}
+          {description ? (
+            <Text style={{ color: '#64748b', fontSize: 16, marginBottom: 10, marginLeft: 2 }}>
+              {description}
+            </Text>
+          ) : null}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 10,
+              justifyContent: 'space-between',
+            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+              <Ionicons name="time-outline" size={18} color="#2563eb" style={{ marginRight: 4 }} />
+              <Text style={{ fontWeight: '600', color: '#2563eb', fontSize: 15 }}>{duration}</Text>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginLeft: 16,
+                backgroundColor: '#f1f5f9',
+                borderRadius: 8,
+                paddingHorizontal: 10,
+                paddingVertical: 2,
+              }}>
+              <Streak streak={streak || 0} />
+            </View>
+          </View>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            {/* Start/Resume/Pause Button */}
+            {status !== 'completed' && (
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor:
+                    status === 'paused' && isNoTaskRunning
+                      ? '#f59e42'
+                      : isNoTaskRunning || status === 'running'
+                        ? '#2563eb'
+                        : '#cbd5e1',
+                  borderRadius: 8,
+                  paddingVertical: 12,
+                  alignItems: 'center',
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  marginRight: 6,
+                }}
+                onPress={() => {
+                  setTimerVisible(true);
+                  if (status === 'idle') startTimer();
+                  else if (status === 'paused') resumeTimer();
+                }}
+                disabled={!(status === 'running' || isNoTaskRunning)}
+                activeOpacity={0.85}>
+                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
+                  {status === 'running' || status === 'paused'
+                    ? `${timer.hours ? timer.hours.toString().padStart(2, '0') + ':' : ''}${timer.minutes
+                        .toString()
+                        .padStart(2, '0')}:${timer.seconds.toString().padStart(2, '0')}`
+                    : 'Start'}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {/* Complete Task Button */}
+            {status !== 'completed' && (
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: '#10b981',
+                  borderRadius: 8,
+                  paddingVertical: 12,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginLeft: 6,
+                }}
+                onPress={completeTask}
+                activeOpacity={0.85}>
+                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Complete</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {status === 'completed' && (
+            <Text
+              style={{
+                marginTop: 14,
+                textAlign: 'center',
+                fontWeight: 'bold',
+                color: '#10b981',
+                fontSize: 16,
+              }}>
+              Task Completed!
+            </Text>
+          )}
+        </View>
       </View>
       <TimerModal
         initialMinutes={initialMinutes}
@@ -313,4 +406,4 @@ const TodayTaskCard = ({
   );
 };
 
-export default TodayTaskCard;
+export default TodayPlanCard;

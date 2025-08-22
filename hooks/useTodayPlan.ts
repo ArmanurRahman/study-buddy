@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { realmSchemas } from 'schema';
 
-import { isTodayInRange } from '../utils/time';
+import { isTodayInRange, stringToDuration } from '../utils/time';
 import { TodaysPlan } from '../types';
 
 // Custom hook to fetch today's tasks
@@ -42,7 +42,7 @@ export function useTodayPlan(today: Date, refreshKey?: number) {
             id: plan._id.toHexString ? plan._id.toHexString() : String(plan._id),
             title: plan.title,
             description: plan.description,
-            duration: plan.duration,
+            duration: stringToDuration(plan.duration),
             startDate: plan.startDate,
             endDate: plan.endDate,
             streak: plan.streak,

@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import type { RouteProp } from '@react-navigation/native';
 
-import TodayTaskCard from '../components/TodayTaskCard';
+import TodayTaskCard from '../components/TodayPlanCard';
 import { useTodayPlan } from 'hooks/useTodayPlan';
 
 import { PlanStatusType } from 'types';
-import { StackNavigationProp } from 'node_modules/@react-navigation/stack/lib/typescript/src/types';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { durationToString } from 'utils/time';
 
 function isNoTaskRunning(taskStates: Record<string, PlanStatusType>) {
@@ -14,22 +14,23 @@ function isNoTaskRunning(taskStates: Record<string, PlanStatusType>) {
 }
 
 type RootStackParamList = {
-  TodayTaskScreen: undefined;
-  StudyNow: undefined;
+  TodayMain?: {};
+  StudyNow?: { taskId: string };
 };
 
-type TasksScreenProps = {
-  navigation: StackNavigationProp<RootStackParamList, 'TodayTaskScreen'>;
-  route: RouteProp<RootStackParamList, 'TodayTaskScreen'>;
+type TodayPlanScreenProps = {
+  navigation: StackNavigationProp<RootStackParamList, 'TodayMain'>;
+  route: RouteProp<RootStackParamList, 'TodayMain'>;
 };
-const TodayTaskScreen = ({ navigation }: TasksScreenProps) => {
+
+const TodayPlanScreen = ({ navigation }: TodayPlanScreenProps) => {
   const today = new Date();
-  const todayTasks = useTodayPlan(today);
+  const todayPlans = useTodayPlan(today);
 
-  console.log('Today Tasks:', todayTasks);
+  console.log('Today Tasks:', todayPlans);
   // Use an object for taskStates: { [id]: status }
   const [taskStates, setTaskStates] = useState<Record<string, PlanStatusType>>(
-    todayTasks.reduce(
+    todayPlans.reduce(
       (acc, task) => {
         acc[task.id] = 'idle';
         return acc;
@@ -45,16 +46,17 @@ const TodayTaskScreen = ({ navigation }: TasksScreenProps) => {
     <ScrollView>
       <TouchableOpacity onPress={() => navigation.navigate('StudyNow')}>
         <View className="flex-1 items-center justify-center bg-gray-50 p-4">
-          {todayTasks.map((task) => (
+          {todayPlans.map((plan) => (
             <TodayTaskCard
-              status={taskStates[task.id]}
+              status={taskStates[plan.id]}
               setStatus={setStatus}
-              key={task.id}
-              id={task.id}
-              title={task.title}
-              description={task.description}
-              duration={durationToString(task.duration)}
+              key={plan.id}
+              id={plan.id}
+              title={plan.title}
+              description={plan.description}
+              duration={durationToString(plan.duration)}
               isNoTaskRunning={isNoTaskRunning(taskStates)}
+              category={plan.category}
             />
           ))}
         </View>
@@ -63,4 +65,4 @@ const TodayTaskScreen = ({ navigation }: TasksScreenProps) => {
   );
 };
 
-export default TodayTaskScreen;
+export default TodayPlanScreen;

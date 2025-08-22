@@ -3,7 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
-import TodayTask from '../screens/TodayTaskScreen';
+import TodayPlanScreen from '../screens/TodayPlanScreen';
 import AllPlansScreen from '../screens/AllPlansScreen';
 import ProgressScreen from '../screens/ProgressScreen';
 import StudyNowScreen from '../screens/StudyNowScreen';
@@ -35,7 +35,7 @@ const TodayStack = () => (
   <Stack.Navigator>
     <Stack.Screen
       name="TodayMain"
-      component={TodayTask}
+      component={TodayPlanScreen}
       options={{ title: 'Today', headerLeft: () => null, gestureEnabled: false }}
     />
     <Stack.Screen name="StudyNow" component={StudyNowScreen} options={{ title: 'Study Now' }} />
