@@ -24,7 +24,7 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
   const [refreshKey, setRefreshKey] = useState(0);
 
   const today = new Date();
-  const todayTasks = useTodayPlan(today, refreshKey);
+  const { todayPlans, setRefreshKey: setPlanRefreshKey } = useTodayPlan(today);
   const [studyData, setStudyData] = useState({
     labels: WEEK_DAYS,
     datasets: [{ data: [0, 0, 0, 0, 0, 0, 0] }],
@@ -44,6 +44,7 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
     setRefreshing(true);
     setTimeout(() => {
       setRefreshKey((k) => k + 1);
+      setPlanRefreshKey((k) => k + 1);
       setRefreshing(false);
     }, 2000);
   }, []);
@@ -61,7 +62,7 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
             style={{ flex: 1, backgroundColor: 'white' }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
             <View className="flex gap-2">
-              {todayTasks.map((plan) => (
+              {todayPlans.map((plan) => (
                 <TouchableOpacity
                   key={plan.id}
                   activeOpacity={0.7}
@@ -138,7 +139,7 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
           <ScrollView
             className="w-full"
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-            {todayTasks.map((plan) => (
+            {todayPlans.map((plan) => (
               <View key={plan.id} className="mb-2 flex-row items-center justify-between">
                 <Text className="text-lg font-semibold">{plan.title}</Text>
                 <Streak streak={plan.streak || 0} />

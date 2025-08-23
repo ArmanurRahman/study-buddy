@@ -7,7 +7,13 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { realmSchemas } from '../schema';
 import TimerModal from './Timer';
 import { PlanStatusType } from '../types';
-import { getTotalSeconds, parseDuration, secondsToTimer, timeObjectToMinutes } from '../utils/time';
+import {
+  formatDuration,
+  getTotalSeconds,
+  parseDuration,
+  secondsToTimer,
+  timeObjectToMinutes,
+} from '../utils/time';
 import CategoryIcon from './CategoryIcon';
 import Streak from './Streak';
 
@@ -22,6 +28,7 @@ type TodayPlanCardProps = {
   setStatus: (id: string, status: PlanStatusType) => void;
   isNoTaskRunning: boolean;
   category: string;
+  refresh: () => void;
 };
 
 const TodayPlanCard = ({
@@ -34,6 +41,7 @@ const TodayPlanCard = ({
   setStatus,
   isNoTaskRunning,
   category,
+  refresh,
 }: TodayPlanCardProps) => {
   const navigation = useNavigation<NavigationProp<any>>();
   const {
@@ -55,6 +63,13 @@ const TodayPlanCard = ({
   const appState = useRef(AppState.currentState);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Update timer state if duration prop changes
+  useEffect(() => {
+    const { hours, minutes, seconds } = parseDuration(duration);
+    setTimer({ hours, minutes, seconds });
+    setRemainingSeconds(hours * 3600 + minutes * 60 + seconds);
+  }, [duration]);
 
   // Start timer
   const startTimer = () => {
@@ -155,15 +170,15 @@ const TodayPlanCard = ({
           });
         }
         // / --- Streak Logic (considering frequency) ---
-        // Get the Task object
-        const taskObj = realm.objectForPrimaryKey('Task', new Realm.BSON.ObjectId(id));
-        if (taskObj) {
+        // Get the Plan object
+        const planObj = realm.objectForPrimaryKey('Plan', new Realm.BSON.ObjectId(id));
+        if (planObj) {
           // Parse frequency (should be an array of booleans for days of week)
           let frequency: boolean[] = [];
           try {
-            frequency = Array.isArray(taskObj.frequency)
-              ? taskObj.frequency
-              : JSON.parse(taskObj.frequency as string);
+            frequency = Array.isArray(planObj.frequency)
+              ? planObj.frequency
+              : JSON.parse(planObj.frequency as string);
           } catch {
             frequency = [false, false, false, false, false, false, false];
           }
@@ -175,9 +190,9 @@ const TodayPlanCard = ({
 
           // If today is not a scheduled day, streak does not increment
           if (!frequency[todayWeekday]) {
-            taskObj.streak = 0;
+            planObj.streak = 0;
           } else {
-            // Find the last time this task was completed on any of the scheduled days (excluding today)
+            // Find the last time this plan was completed on any of the scheduled days (excluding today)
             const lastStatus = realm
               .objects('PlanStatus')
               .filtered(
@@ -210,19 +225,21 @@ const TodayPlanCard = ({
               let daysSincePrev = (todayWeekday - prevScheduledDay + 7) % 7 || 7;
               // If lastStatus was exactly daysSincePrev days ago, continue streak
               if (diffDays === daysSincePrev) {
-                taskObj.streak = (Number(taskObj.streak) || 0) + 1;
+                planObj.streak = (Number(planObj.streak) || 0) + 1;
               } else {
-                taskObj.streak = 1;
+                planObj.streak = 1;
               }
             } else {
               // First time completing on a scheduled day
-              taskObj.streak = 1;
+              planObj.streak = 1;
             }
           }
         }
       });
       setStatus(id, 'completed');
       realm.close();
+      setTimerVisible(false);
+      refresh();
       navigation.navigate('StudyComplete');
     } catch (e) {
       console.error('Error saving task status:', e);
@@ -307,7 +324,9 @@ const TodayPlanCard = ({
                 justifyContent: 'space-between',
               }}>
               <Ionicons name="time-outline" size={18} color="#2563eb" style={{ marginRight: 4 }} />
-              <Text style={{ fontWeight: '600', color: '#2563eb', fontSize: 15 }}>{duration}</Text>
+              <Text style={{ fontWeight: '600', color: '#2563eb', fontSize: 15 }}>
+                {formatDuration(duration)}
+              </Text>
             </View>
             <View
               style={{
@@ -357,7 +376,7 @@ const TodayPlanCard = ({
                 </Text>
               </TouchableOpacity>
             )}
-            {/* Complete Task Button */}
+            {/* Complete Plan Button */}
             {status !== 'completed' && (
               <TouchableOpacity
                 style={{
@@ -384,7 +403,7 @@ const TodayPlanCard = ({
                 color: '#10b981',
                 fontSize: 16,
               }}>
-              Task Completed!
+              Study Completed!
             </Text>
           )}
         </View>

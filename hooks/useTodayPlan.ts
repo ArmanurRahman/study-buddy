@@ -5,8 +5,9 @@ import { isTodayInRange, stringToDuration } from '../utils/time';
 import { TodaysPlan } from '../types';
 
 // Custom hook to fetch today's tasks
-export function useTodayPlan(today: Date, refreshKey?: number) {
+export function useTodayPlan(today: Date) {
   const [todayPlans, setTodayPlans] = useState<TodaysPlan[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     let realm: Realm;
@@ -63,5 +64,5 @@ export function useTodayPlan(today: Date, refreshKey?: number) {
     };
   }, [today.getDate(), refreshKey]);
 
-  return todayPlans;
+  return { todayPlans, setRefreshKey };
 }

@@ -1,5 +1,6 @@
-import { useContext, useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, Alert, RefreshControl } from 'react-native';
+import { SwipeListView } from 'react-native-swipe-list-view';
 import { Ionicons } from '@expo/vector-icons';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import LinearGradient from 'react-native-linear-gradient';
@@ -13,6 +14,7 @@ import Streak from 'components/Streak';
 import CategoryIcon from 'components/CategoryIcon';
 import { Context as PlanContext } from 'context/PlanContext';
 import { RouteProp } from '@react-navigation/native';
+import { useDeletePlan } from 'hooks/useDeletePlan';
 
 type RootStackParamList = {
   AllPlans?: { needRefresh?: boolean };
@@ -27,6 +29,7 @@ type TasksScreenProps = {
 const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
   const [addTaskModalVisible, setAddTaskModalVisible] = useState(false);
   const [editTask, setEditTask] = useState<Plan | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const { changePlan, resetPlan } = useContext(PlanContext) as {
     state: { title: string };
@@ -35,6 +38,7 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
   };
 
   const { plans, setRefreshFlag } = useAllPlans();
+  const deletePlan = useDeletePlan();
 
   useEffect(() => {
     if (route.params?.needRefresh) {
@@ -51,24 +55,45 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
     }
   };
 
-  // Handler to close EditTask and refresh list
-  const handleCloseEdit = (isCloseOnly = false) => {
-    setEditTask(null);
-    if (!isCloseOnly) {
-      setRefreshFlag((f) => f + 1);
-    }
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setRefreshFlag((f) => f + 1);
+    setTimeout(() => setRefreshing(false), 600);
+  }, [setRefreshFlag]);
+
+  // Handler for delete
+  const handleDelete = (planId: string) => {
+    Alert.alert(
+      'Delete Plan',
+      'Are you sure you want to delete this plan?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            deletePlan(planId);
+            setRefreshFlag((f) => f + 1);
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
+
   return (
     <View className="relative flex-1 bg-gray-50">
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {plans.map((plan) => (
+      <SwipeListView
+        data={plans}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={{ padding: 16 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        renderItem={({ item: plan }) => (
           <TouchableOpacity
-            key={plan.id}
             activeOpacity={0.92}
             delayLongPress={300}
             onLongPress={() => {
               changePlan(plan);
-              console.log('Editing plan:', plan);
               navigation.navigate('PlanTitle', { edit: true });
             }}
             style={{
@@ -160,8 +185,36 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
               )}
             </View>
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+        )}
+        renderHiddenItem={({ item }) => (
+          <View
+            style={{
+              flex: 1,
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              marginBottom: 18,
+              borderRadius: 18,
+              overflow: 'hidden',
+            }}>
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#ef4444',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: 80,
+                height: '100%',
+                borderRadius: 18,
+              }}
+              onPress={() => handleDelete(item.id)}>
+              <Ionicons name="trash-outline" size={28} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        )}
+        rightOpenValue={-80}
+        disableRightSwipe
+        showsVerticalScrollIndicator={false}
+      />
       {/* Floating Add Button */}
       {!addTaskModalVisible && !editTask && (
         <TouchableOpacity
