@@ -1,3 +1,4 @@
+import { TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -15,6 +16,7 @@ import EndDateScreen from 'screens/StudyPlan/EndDateScreen';
 import FrequencyScreen from 'screens/StudyPlan/FrequencyScreen';
 import PlanDetails from 'screens/StudyPlan/PlanDetailsScreen';
 import StudyCompleteScreen from 'screens/StudyCompleteScreen';
+import SettingScreen from 'screens/SettingScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -27,9 +29,23 @@ const HomeStack = () => (
     <Stack.Screen
       name="HomeMain"
       component={HomeScreen}
-      options={{ title: 'Home', headerLeft: () => null, gestureEnabled: false }}
+      options={({ navigation }) => ({
+        title: 'Home',
+        headerLeft: () => null,
+        gestureEnabled: false,
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate('Settings');
+            }}
+            style={{ marginRight: 16 }}>
+            <Ionicons name="settings-outline" size={28} />
+          </TouchableOpacity>
+        ),
+      })}
     />
     <Stack.Screen name="StudyNow" component={StudyNowScreen} options={{ title: 'Study Now' }} />
+    <Stack.Screen name="Settings" component={SettingScreen} options={{ title: 'Settings' }} />
   </Stack.Navigator>
 );
 const TodayStack = () => (
