@@ -43,7 +43,7 @@ const TodayStack = () => (
     <Stack.Screen
       name="StudyComplete"
       component={StudyCompleteScreen}
-      options={{ title: 'Study Complete' }}
+      options={{ title: 'Study Completed', headerLeft: () => null }}
     />
   </Stack.Navigator>
 );

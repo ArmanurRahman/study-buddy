@@ -1,11 +1,21 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import LottieView from 'lottie-react-native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
 
-const StudyCompleteScreen = ({ navigation }) => {
+type RootStackParamList = {
+  TodayMain: undefined;
+};
+
+type StudyCompleteScreenNavigationProp = StackNavigationProp<RootStackParamList, 'TodayMain'>;
+
+type Props = {
+  navigation: StudyCompleteScreenNavigationProp;
+};
+
+const StudyCompleteScreen = ({ navigation }: Props) => {
   return (
     <View
       style={{
@@ -16,7 +26,7 @@ const StudyCompleteScreen = ({ navigation }) => {
         padding: 24,
       }}>
       <LottieView
-        source={require('../assets/animation/study_completed.json')} // Place a congrats animation JSON in your assets folder
+        source={require('../assets/animation/study_completed.json')}
         autoPlay
         loop={false}
         style={{
@@ -45,9 +55,9 @@ const StudyCompleteScreen = ({ navigation }) => {
           paddingHorizontal: 40,
           borderRadius: 10,
         }}
-        onPress={() => navigation.navigate('Home')}
+        onPress={() => navigation.navigate('TodayMain')}
         activeOpacity={0.85}>
-        <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>Back to Home</Text>
+        <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>Back to Study</Text>
       </TouchableOpacity>
     </View>
   );
