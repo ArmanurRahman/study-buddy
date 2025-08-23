@@ -95,3 +95,50 @@ export const stringToDuration = (duration: string) => {
   const [hours, minutes] = duration.split(' ').map((part) => parseInt(part).toString() || '');
   return { hours, minutes };
 };
+
+// Calculate duration based on totalHours, frequency, and endDate
+export const getAutoDuration = ({
+  totalHours,
+  frequency,
+  startDate,
+  endDate,
+}: {
+  totalHours: number | null;
+  frequency: boolean[];
+  startDate?: Date;
+  endDate?: Date;
+}) => {
+  if (!totalHours || !frequency || frequency.filter(Boolean).length === 0)
+    return { hours: '', minutes: '' };
+
+  // If endDate and startDate are provided, count the number of scheduled study days between them
+  let daysCount = frequency.filter(Boolean).length;
+  if (startDate && endDate) {
+    let count = 0;
+    let current = new Date(startDate);
+    current.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(0, 0, 0, 0);
+
+    while (current <= end) {
+      const weekday = (current.getDay() + 6) % 7; // 0=Monday, 6=Sunday
+      if (frequency[weekday]) count++;
+      current.setDate(current.getDate() + 1);
+    }
+    daysCount = count;
+  }
+
+  if (daysCount === 0) return { hours: '', minutes: '' };
+
+  const hoursPerDay = totalHours / daysCount;
+  if (hoursPerDay > 24) {
+    return { hours: '', minutes: '' };
+  }
+  const wholeHours = Math.floor(hoursPerDay);
+  const minutes = Math.round((hoursPerDay - wholeHours) * 60);
+
+  return {
+    hours: wholeHours.toString(),
+    minutes: minutes.toString().padStart(2, '0'),
+  };
+};

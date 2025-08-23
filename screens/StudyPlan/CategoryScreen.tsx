@@ -10,6 +10,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  FlatList,
 } from 'react-native';
 import { useQuery } from '@realm/react';
 
@@ -103,31 +104,23 @@ const CategoryScreen = ({ navigation, route }: PlansScreenProps) => {
           </Text>
           <View className="relative w-full" style={{ marginBottom: 24 }}>
             <TextInput
+              style={{ fontSize: 18 }}
               value={categoryInput}
               onChangeText={(text) => {
                 setCategoryInput(text);
                 setShowCategorySuggestions(true);
-                changeCategory(text); // Set as selected if user types a new one
+                changeCategory(text);
               }}
               onFocus={() => setShowCategorySuggestions(true)}
               placeholder="Type or select a category"
-              className="rounded-lg border border-gray-300 p-4 shadow-sm"
+              className="rounded-lg border border-gray-300 p-4"
             />
             {showCategorySuggestions && filteredCategories.length > 0 && (
-              <View
-                className="mt-1 max-h-32 rounded border border-gray-200 shadow"
-                style={{
-                  position: 'absolute',
-                  top: 50,
-                  left: 0,
-                  right: 0,
-                  backgroundColor: 'white',
-                  zIndex: 10,
-                  overflow: 'hidden',
-                }}>
-                {filteredCategories.map((item) => (
+              <FlatList
+                data={filteredCategories}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
                   <TouchableOpacity
-                    key={item}
                     onPress={() => {
                       changeCategory(item);
                       setCategoryInput(item);
@@ -136,31 +129,33 @@ const CategoryScreen = ({ navigation, route }: PlansScreenProps) => {
                     style={{ padding: 10 }}>
                     <Text>{item}</Text>
                   </TouchableOpacity>
-                ))}
-              </View>
+                )}
+                className="mt-1 rounded border border-gray-200"
+                style={{
+                  maxHeight: 150,
+                  position: 'absolute',
+                  top: 50,
+                  left: 0,
+                  right: 0,
+                  backgroundColor: 'white',
+                  zIndex: 10,
+                  overflow: 'hidden',
+                }}
+              />
             )}
           </View>
 
           <TouchableOpacity
             onPress={handleNext}
             style={{
-              backgroundColor: '#2563eb',
+              backgroundColor: categoryInput.trim().length !== 0 ? '#2563eb' : '#a5b4fc',
               padding: 14,
               borderRadius: 8,
               alignItems: 'center',
               marginBottom: 12,
-            }}>
+            }}
+            disabled={categoryInput.trim().length === 0}>
             <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>Next</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleSkip}
-            style={{
-              backgroundColor: '#a5b4fc',
-              padding: 14,
-              borderRadius: 8,
-              alignItems: 'center',
-            }}>
-            <Text style={{ color: '#2563eb', fontWeight: 'bold', fontSize: 18 }}>Skip</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

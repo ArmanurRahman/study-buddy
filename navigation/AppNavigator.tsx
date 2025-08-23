@@ -137,8 +137,8 @@ const AppNavigator = () => {
 
             if (route.name === 'Home') {
               iconName = 'home-outline';
-            } else if (route.name === 'Today') {
-              iconName = 'calendar-outline';
+            } else if (route.name === 'Study') {
+              iconName = 'book-outline';
             } else if (route.name === 'Tasks') {
               iconName = 'list-outline';
             } else if (route.name === 'Progress') {

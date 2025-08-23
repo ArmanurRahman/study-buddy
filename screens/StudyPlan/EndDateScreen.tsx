@@ -40,8 +40,6 @@ const EndDateScreen = ({ navigation, route }: TasksScreenProps) => {
   };
 
   const handleNext = () => {
-    // Pass the end time to the next screen or handle as needed
-    // navigation.navigate('NextScreen', { endTime }); // Replace 'NextScreen' with your actual next screen name
     navigation.navigate('PlanFrequency', {
       ...route.params,
       edit: route.params?.edit ?? false,
@@ -74,34 +72,27 @@ const EndDateScreen = ({ navigation, route }: TasksScreenProps) => {
             shadowRadius: 8,
           }}>
           <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 24, textAlign: 'left' }}>
-            Do you have an end date or Do you have total study hours in mind?
+            Do you have an end date or total study hours in mind?
           </Text>
           <Text style={{ fontSize: 18, marginBottom: 12, textAlign: 'left', color: '#6b7280' }}>
-            Total study hours can be used to calculate the end date of your study plan. it will help
-            you to stay on track.
+            End Date and Total Study Hours will help you to stay on track.
           </Text>
-          <View className="relative w-full" style={{ marginBottom: 12 }}>
+          <View className="relative w-full" style={{ marginBottom: 0 }}>
             <DateTime
               date={endDate}
               setDate={(date) => {
                 changeEndDate(date);
-                if (date) {
-                  changeTotalHours(null);
-                }
               }}
               showPicker={showEndPicker}
               setShowPicker={setShowEndPicker}
             />
           </View>
           <TextInput
-            placeholder="Or enter total study hours"
+            placeholder="Enter total study hours"
             value={totalHours?.toString()}
             onChangeText={(text) => {
               const hours = text ? parseInt(text, 10) : null;
               changeTotalHours(hours);
-              if (hours !== null) {
-                changeEndDate(undefined);
-              }
             }}
             keyboardType="numeric"
             style={{

@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RouteProp } from '@react-navigation/native';
 import {
@@ -16,6 +16,7 @@ import Frequency from 'components/Frequency';
 import Clock from 'components/Clock';
 import { Context as PlanContext } from 'context/PlanContext';
 import { useSaveUpdatePlan } from 'hooks/useSaveUpdatePlan';
+import { getAutoDuration } from 'utils/time';
 
 type RootStackParamList = {
   AllPlans?: { needRefresh?: boolean };
@@ -60,6 +61,20 @@ const FrequencyScreen = ({ navigation, route }: TasksScreenProps) => {
     changeId: (id: string) => void;
   };
   const saveUpdatePlan = useSaveUpdatePlan();
+
+  useEffect(() => {
+    if (totalHours && frequency && frequency.filter(Boolean).length > 0) {
+      changeDuration(
+        getAutoDuration({
+          totalHours,
+          frequency,
+          startDate: startDate || new Date(),
+          endDate: endDate || new Date(),
+        })
+      );
+    }
+  }, [frequency, totalHours]);
+
   // Save or update plan in Realm database
   const handleAddUpdatePlan = async () => {
     if (!title) {
@@ -95,7 +110,6 @@ const FrequencyScreen = ({ navigation, route }: TasksScreenProps) => {
 
   const updateAndFetch = async () => {
     await handleAddUpdatePlan();
-    // await fetchTodaysPlans();
     navigation.navigate('AllPlans');
   };
   return (

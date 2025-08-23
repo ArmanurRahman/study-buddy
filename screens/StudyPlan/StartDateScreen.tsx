@@ -36,8 +36,6 @@ const StartDateScreen = ({ navigation, route }: TasksScreenProps) => {
   };
 
   const handleNext = () => {
-    // Pass the start time to the next screen or handle as needed
-    // navigation.navigate('NextScreen', { startTime }); // Replace 'NextScreen' with your actual next screen name
     navigation.navigate('PlanEndDate', {
       ...route.params,
       edit: route.params?.edit ?? false,
