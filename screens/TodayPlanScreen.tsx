@@ -37,14 +37,14 @@ const TodayPlanScreen = ({ navigation }: TodayPlanScreenProps) => {
     };
     fetchData();
   }, []);
-  console.log('Todays Plans from context:', todaysPlans);
+
   // Update taskStates whenever todayPlans changes
   const [taskStates, setTaskStates] = useState<Record<string, PlanStatusType>>({});
   useEffect(() => {
     setTaskStates(
       todaysPlans.reduce(
         (acc, task) => {
-          acc[task.id] = 'idle';
+          task.status === 'completed' ? (acc[task.id] = 'completed') : (acc[task.id] = 'idle');
           return acc;
         },
         {} as Record<string, PlanStatusType>
