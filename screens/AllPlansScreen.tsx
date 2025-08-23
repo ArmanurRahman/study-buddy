@@ -1,5 +1,5 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, RefreshControl } from 'react-native';
+import { useContext, useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { Ionicons } from '@expo/vector-icons';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -9,10 +9,10 @@ import AddTask from '../components/AddTask';
 import { durationToString, formatDuration } from '../utils/time';
 import { frequencyToSentence } from '../utils/frequency';
 import { Plan } from 'types';
-import { useAllPlans } from 'hooks/useAllPlans';
 import Streak from 'components/Streak';
 import CategoryIcon from 'components/CategoryIcon';
 import { Context as PlanContext } from 'context/PlanContext';
+import { Context as planCollectionContext } from 'context/planCollectionContext';
 import { RouteProp } from '@react-navigation/native';
 import { useDeletePlan } from 'hooks/useDeletePlan';
 
@@ -28,38 +28,33 @@ type TasksScreenProps = {
 
 const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
   const [addTaskModalVisible, setAddTaskModalVisible] = useState(false);
-  const [editTask, setEditTask] = useState<Plan | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
 
   const { changePlan, resetPlan } = useContext(PlanContext) as {
     state: { title: string };
     changePlan: (plan: Plan) => void;
     resetPlan: () => void;
   };
-
-  const { plans, setRefreshFlag } = useAllPlans();
-  const deletePlan = useDeletePlan();
-
-  useEffect(() => {
-    if (route.params?.needRefresh) {
-      // Fetch plans again or perform any necessary updates
-      setRefreshFlag((prev) => prev + 1);
-    }
-  }, []);
-
-  // Handler to close AddTask and refresh list
-  const handleCloseAdd = (isCloseOnly = false) => {
-    setAddTaskModalVisible(false);
-    if (!isCloseOnly) {
-      setRefreshFlag((f) => f + 1);
-    }
+  const {
+    state: { allPlans: plans },
+    fetchAllPlans,
+  } = useContext(planCollectionContext) as {
+    state: { allPlans: Plan[] };
+    fetchAllPlans: () => Promise<void>;
   };
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setRefreshFlag((f) => f + 1);
-    setTimeout(() => setRefreshing(false), 600);
-  }, [setRefreshFlag]);
+  useEffect(() => {
+    const fetchData = async () => {
+      await fetchAllPlans();
+    };
+    fetchData();
+  }, []);
+
+  const deletePlan = useDeletePlan();
+
+  // Handler to close AddTask and refresh list
+  const handleCloseAdd = () => {
+    setAddTaskModalVisible(false);
+  };
 
   // Handler for delete
   const handleDelete = (planId: string) => {
@@ -73,7 +68,6 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
           style: 'destructive',
           onPress: () => {
             deletePlan(planId);
-            setRefreshFlag((f) => f + 1);
           },
         },
       ],
@@ -87,7 +81,7 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
         data={plans}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 16 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        // refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         renderItem={({ item: plan }) => (
           <TouchableOpacity
             activeOpacity={0.92}
@@ -216,7 +210,7 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
         showsVerticalScrollIndicator={false}
       />
       {/* Floating Add Button */}
-      {!addTaskModalVisible && !editTask && (
+      {!addTaskModalVisible && (
         <TouchableOpacity
           style={{
             position: 'absolute',
@@ -241,7 +235,6 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
       {/* Modal for Add Task */}
       {addTaskModalVisible && <AddTask onClose={handleCloseAdd} />}
       {/* Modal for Edit Task */}
-      {/* {editTask && <AddTask onClose={handleCloseEdit} editTask={editTask} />} */}
     </View>
   );
 };

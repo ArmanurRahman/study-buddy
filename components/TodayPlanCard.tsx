@@ -28,7 +28,6 @@ type TodayPlanCardProps = {
   setStatus: (id: string, status: PlanStatusType) => void;
   isNoTaskRunning: boolean;
   category: string;
-  refresh: () => void;
 };
 
 const TodayPlanCard = ({
@@ -41,7 +40,6 @@ const TodayPlanCard = ({
   setStatus,
   isNoTaskRunning,
   category,
-  refresh,
 }: TodayPlanCardProps) => {
   const navigation = useNavigation<NavigationProp<any>>();
   const {
@@ -239,7 +237,6 @@ const TodayPlanCard = ({
       setStatus(id, 'completed');
       realm.close();
       setTimerVisible(false);
-      refresh();
       navigation.navigate('StudyComplete');
     } catch (e) {
       console.error('Error saving task status:', e);

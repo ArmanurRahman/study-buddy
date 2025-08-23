@@ -1,8 +1,14 @@
-import { useCallback } from 'react';
+import { useCallback, useContext } from 'react';
 import Realm from 'realm';
 import { realmSchemas } from '../schema';
+import { Context as planCollectionContext } from 'context/planCollectionContext';
+import { Plan } from 'types';
 
 export function useDeletePlan() {
+  const { fetchAllPlans } = useContext(planCollectionContext) as {
+    state: { allPlans: Plan[] };
+    fetchAllPlans: () => Promise<void>;
+  };
   const deletePlan = useCallback(async (planId: string) => {
     let realm: Realm | null = null;
     try {
@@ -20,6 +26,7 @@ export function useDeletePlan() {
         realm.close();
       }
     }
+    await fetchAllPlans();
   }, []);
 
   return deletePlan;

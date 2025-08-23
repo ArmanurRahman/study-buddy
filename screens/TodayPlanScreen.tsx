@@ -1,11 +1,11 @@
-import { useCallback, useState, useEffect } from 'react';
-import { View, ScrollView, RefreshControl } from 'react-native';
+import { useState, useEffect, useContext } from 'react';
+import { View, ScrollView } from 'react-native';
 import { type RouteProp } from '@react-navigation/native';
 
 import TodayTaskCard from '../components/TodayPlanCard';
-import { useTodayPlan } from 'hooks/useTodayPlan';
+import { Context as planCollectionContext } from 'context/planCollectionContext';
 
-import { PlanStatusType } from 'types';
+import { PlanStatusType, TodaysPlan } from 'types';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { durationToString } from 'utils/time';
 
@@ -24,19 +24,25 @@ type TodayPlanScreenProps = {
 };
 
 const TodayPlanScreen = ({ navigation }: TodayPlanScreenProps) => {
-  const today = new Date();
-  const { todayPlans, setRefreshKey } = useTodayPlan(today);
-  const [refreshing, setRefreshing] = useState(false);
-
+  const {
+    state: { todaysPlans },
+    fetchTodaysPlans,
+  } = useContext(planCollectionContext) as {
+    state: { todaysPlans: TodaysPlan[] };
+    fetchTodaysPlans: () => Promise<void>;
+  };
   useEffect(() => {
-    if (refreshing) setRefreshing(false);
-  }, [todayPlans]);
-
+    const fetchData = async () => {
+      await fetchTodaysPlans();
+    };
+    fetchData();
+  }, []);
+  console.log('Todays Plans from context:', todaysPlans);
   // Update taskStates whenever todayPlans changes
   const [taskStates, setTaskStates] = useState<Record<string, PlanStatusType>>({});
   useEffect(() => {
     setTaskStates(
-      todayPlans.reduce(
+      todaysPlans.reduce(
         (acc, task) => {
           acc[task.id] = 'idle';
           return acc;
@@ -44,21 +50,16 @@ const TodayPlanScreen = ({ navigation }: TodayPlanScreenProps) => {
         {} as Record<string, PlanStatusType>
       )
     );
-  }, [todayPlans]);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setRefreshKey((f) => f + 1);
-  }, [setRefreshKey]);
+  }, [todaysPlans]);
 
   const setStatus = (id: string, status: PlanStatusType) => {
     setTaskStates((prev) => ({ ...prev, [id]: status }));
   };
 
   return (
-    <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+    <ScrollView>
       <View className="flex-1 items-center justify-center bg-gray-50 p-4">
-        {todayPlans.map((plan) => (
+        {todaysPlans.map((plan) => (
           <TodayTaskCard
             status={taskStates[plan.id]}
             setStatus={setStatus}
@@ -69,7 +70,6 @@ const TodayPlanScreen = ({ navigation }: TodayPlanScreenProps) => {
             duration={durationToString(plan.duration)}
             isNoTaskRunning={isNoTaskRunning(taskStates)}
             category={plan.category}
-            refresh={onRefresh}
             streak={plan.streak}
           />
         ))}

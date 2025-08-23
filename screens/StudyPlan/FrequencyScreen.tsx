@@ -17,6 +17,8 @@ import Clock from 'components/Clock';
 import { Context as PlanContext } from 'context/PlanContext';
 import { realmSchemas } from 'schema';
 import { durationToString } from 'utils/time';
+import { TodaysPlan } from 'types';
+import { Context as planCollectionContext } from 'context/planCollectionContext';
 
 type RootStackParamList = {
   AllPlans?: { needRefresh?: boolean };
@@ -60,6 +62,10 @@ const FrequencyScreen = ({ navigation, route }: TasksScreenProps) => {
     changeFrequency: (frequency: boolean[]) => void;
     changeDuration: (duration: { hours: string; minutes: string }) => void;
     changeId: (id: string) => void;
+  };
+  const { fetchTodaysPlans } = useContext(planCollectionContext) as {
+    state: { todaysPlans: TodaysPlan[] };
+    fetchTodaysPlans: () => Promise<void>;
   };
   // Save or update plan in Realm database
   const handleAddUpdatePlan = async () => {
@@ -113,19 +119,20 @@ const FrequencyScreen = ({ navigation, route }: TasksScreenProps) => {
           changeId(newId.toHexString());
           Alert.alert('Success', 'Plan added!');
         }
-        navigation.navigate('AllPlans', {
-          ...route.params,
-          needRefresh: true,
-        });
       });
     } catch (e) {
       console.error('Error saving plan:', e);
       Alert.alert('Error', 'Could not save plan.');
     } finally {
-      realm?.close();
+      if (realm && !realm.isClosed) realm.close();
     }
   };
 
+  const updateAndFetch = async () => {
+    await handleAddUpdatePlan();
+    await fetchTodaysPlans();
+    navigation.navigate('AllPlans');
+  };
   return (
     <TouchableWithoutFeedback
       onPress={() => {
@@ -164,7 +171,7 @@ const FrequencyScreen = ({ navigation, route }: TasksScreenProps) => {
           </View>
 
           <TouchableOpacity
-            onPress={handleAddUpdatePlan}
+            onPress={updateAndFetch}
             style={{
               backgroundColor: '#2563eb',
               padding: 14,
