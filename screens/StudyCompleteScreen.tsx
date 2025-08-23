@@ -6,10 +6,10 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 const screenWidth = Dimensions.get('window').width;
 
 type RootStackParamList = {
-  TodayMain: undefined;
+  StudyMain: undefined;
 };
 
-type StudyCompleteScreenNavigationProp = StackNavigationProp<RootStackParamList, 'TodayMain'>;
+type StudyCompleteScreenNavigationProp = StackNavigationProp<RootStackParamList, 'StudyMain'>;
 
 type Props = {
   navigation: StudyCompleteScreenNavigationProp;
@@ -55,7 +55,7 @@ const StudyCompleteScreen = ({ navigation }: Props) => {
           paddingHorizontal: 40,
           borderRadius: 10,
         }}
-        onPress={() => navigation.navigate('TodayMain')}
+        onPress={() => navigation.navigate('StudyMain')}
         activeOpacity={0.85}>
         <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>Back to Study</Text>
       </TouchableOpacity>

@@ -20,15 +20,15 @@ export interface Plan {
   title: string;
   description?: string;
   duration: { hours: string; minutes: string };
-  startDate?: Date;
-  endDate?: Date;
+  startDate: Date | null;
+  endDate: Date | null;
   frequency?: boolean[];
   createdAt?: Date;
   streak?: number;
   sendNotification?: boolean;
   startTime?: Date;
   category: string;
-  totalHours?: number;
+  totalHours: number | null;
 }
 
 export interface TaskStatus {

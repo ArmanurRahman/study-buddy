@@ -1,10 +1,9 @@
 import { useRef, useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, AppState, AppStateStatus } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Realm from 'realm';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useRealm } from '@realm/react';
 
-import { realmSchemas } from '../schema';
 import TimerModal from './Timer';
 import { PlanStatusType } from '../types';
 import {
@@ -42,6 +41,7 @@ const TodayPlanCard = ({
   category,
 }: TodayPlanCardProps) => {
   const navigation = useNavigation<NavigationProp<any>>();
+  const realm = useRealm();
   const {
     hours: initialHours,
     minutes: initialMinutes,
@@ -95,6 +95,7 @@ const TodayPlanCard = ({
     setTimerRunning(true);
     setStartTimestamp(Date.now());
   };
+
   // Effect to handle ticking
   useEffect(() => {
     if (!timerRunning) return;
@@ -140,13 +141,12 @@ const TodayPlanCard = ({
     return () => subscription.remove();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timerRunning, startTimestamp, remainingSeconds]);
+
   // Complete the task
-  const completeTask = async () => {
+  const completeTask = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
 
-    // Insert/update status in the database
     try {
-      const realm = await Realm.open({ schema: realmSchemas });
       const today = new Date();
       const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       realm.write(() => {
@@ -167,7 +167,7 @@ const TodayPlanCard = ({
             passedTime: timeObjectToMinutes(timer),
           });
         }
-        // / --- Streak Logic (considering frequency) ---
+        // --- Streak Logic (considering frequency) ---
         // Get the Plan object
         const planObj = realm.objectForPrimaryKey('Plan', new Realm.BSON.ObjectId(id));
         if (planObj) {
@@ -182,7 +182,6 @@ const TodayPlanCard = ({
           }
 
           // Get the weekday for today (0=Monday, 6=Sunday)
-          // JS: getDay() is 0=Sunday, 6=Saturday. Convert to 0=Monday, 6=Sunday:
           let jsDay = todayDate.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
           let todayWeekday = (jsDay + 6) % 7; // 0=Monday, 6=Sunday
 
@@ -201,16 +200,13 @@ const TodayPlanCard = ({
               .sorted('date', true)
               .find((status: any) => {
                 const d = status.date;
-                // Only consider scheduled days
                 return frequency[d.getDay()];
               });
 
             if (lastStatus) {
-              // Calculate how many weeks since last completion on a scheduled day
               const diffDays = Math.floor(
                 (todayDate.getTime() - lastStatus.date.getTime()) / (1000 * 60 * 60 * 24)
               );
-              // Find the previous scheduled day before today
               let prevScheduledDay = todayWeekday;
               for (let i = 1; i <= 7; i++) {
                 const checkDay = (todayWeekday - i + 7) % 7;
@@ -219,29 +215,26 @@ const TodayPlanCard = ({
                   break;
                 }
               }
-              // Calculate how many days ago was the previous scheduled day
               let daysSincePrev = (todayWeekday - prevScheduledDay + 7) % 7 || 7;
-              // If lastStatus was exactly daysSincePrev days ago, continue streak
               if (diffDays === daysSincePrev) {
                 planObj.streak = (Number(planObj.streak) || 0) + 1;
               } else {
                 planObj.streak = 1;
               }
             } else {
-              // First time completing on a scheduled day
               planObj.streak = 1;
             }
           }
         }
       });
       setStatus(id, 'completed');
-      realm.close();
       setTimerVisible(false);
       navigation.navigate('StudyComplete');
     } catch (e) {
       console.error('Error saving task status:', e);
     }
   };
+
   const resetTimer = () => {
     pauseTimer();
     setStatus(id, 'idle');

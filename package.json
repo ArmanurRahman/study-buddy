@@ -15,6 +15,7 @@
     "@react-navigation/bottom-tabs": "^7.4.6",
     "@react-navigation/native": "^7.1.17",
     "@react-navigation/stack": "^7.4.7",
+    "@realm/react": "^0.11.0",
     "date-fns": "^4.1.0",
     "expo": "^53.0.20",
     "expo-dev-client": "~5.2.4",

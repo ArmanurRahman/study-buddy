@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { View, Text } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
-import { realmSchemas } from 'schema';
+import { useQuery } from '@realm/react';
 import { timeStringToHours } from 'utils/time';
 
 // Example: configure locale if needed
@@ -58,30 +58,24 @@ const getMarkedDates = (studyMinutesByDate: Record<string, number>) => {
 };
 
 const StudyCalendar = () => {
-  const [studyMinutesByDate, setStudyMinutesByDate] = useState<Record<string, number>>({});
-  useEffect(() => {
-    (async () => {
-      const realm = await Realm.open({ schema: realmSchemas });
-      // Fetch all completed PlanStatus
-      const statuses = realm.objects('PlanStatus').filtered('status == "completed"');
-      const minutesByDate: Record<string, number> = {};
+  const planStatusResults = useQuery('PlanStatus');
 
-      statuses.forEach((status: any) => {
-        const dateObj = new Date(status.date);
-        const dateStr = dateObj.toISOString().slice(0, 10); // 'YYYY-MM-DD'
-        let minutes = 0;
-        if (typeof status.passedTime === 'number') {
-          minutes = status.passedTime;
-        } else if (typeof status.passedTime === 'string') {
-          minutes = timeStringToHours(status.passedTime) * 60;
-        }
-        minutesByDate[dateStr] = (minutesByDate[dateStr] || 0) + minutes;
-      });
-
-      setStudyMinutesByDate(minutesByDate);
-      realm.close();
-    })();
-  }, []);
+  // Compute study minutes by date using useMemo for performance
+  const studyMinutesByDate = useMemo(() => {
+    const minutesByDate: Record<string, number> = {};
+    planStatusResults.filtered('status == "completed"').forEach((status: any) => {
+      const dateObj = new Date(status.date);
+      const dateStr = dateObj.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+      let minutes = 0;
+      if (typeof status.passedTime === 'number') {
+        minutes = status.passedTime;
+      } else if (typeof status.passedTime === 'string') {
+        minutes = timeStringToHours(status.passedTime) * 60;
+      }
+      minutesByDate[dateStr] = (minutesByDate[dateStr] || 0) + minutes;
+    });
+    return minutesByDate;
+  }, [planStatusResults]);
 
   return (
     <View className="mb-6">
@@ -94,14 +88,17 @@ const StudyCalendar = () => {
           overflow: 'hidden',
         }}
         dayComponent={({ date }) => {
+          if (!date) return null;
           const minutes = studyMinutesByDate[date.dateString];
           return (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ color: minutes > 0 ? '#2563eb' : '#9ca3af', fontWeight: 'bold' }}>
-                {date?.day}
+                {date.day}
               </Text>
               {minutes > 0 && (
-                <Text style={{ fontSize: 10, color: '#2563eb' }}>{minutes / 60}h</Text>
+                <Text style={{ fontSize: 10, color: '#2563eb' }}>
+                  {minutes < 60 ? `${minutes}m` : `${(minutes / 60).toFixed(2)}h`}
+                </Text>
               )}
             </View>
           );

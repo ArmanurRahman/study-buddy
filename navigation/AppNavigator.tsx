@@ -35,9 +35,9 @@ const HomeStack = () => (
 const TodayStack = () => (
   <Stack.Navigator>
     <Stack.Screen
-      name="TodayMain"
+      name="StudyMain"
       component={TodayPlanScreen}
-      options={{ title: 'Today', headerLeft: () => null, gestureEnabled: false }}
+      options={{ title: 'Study', headerLeft: () => null, gestureEnabled: false }}
     />
     <Stack.Screen name="StudyNow" component={StudyNowScreen} options={{ title: 'Study Now' }} />
     <Stack.Screen
@@ -163,13 +163,13 @@ const AppNavigator = () => {
           })}
         />
         <Tab.Screen
-          name="Today"
+          name="Study"
           component={TodayStack}
           options={{ headerShown: false }}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
               e.preventDefault();
-              navigation.navigate('Today', { screen: 'TodayMain' });
+              navigation.navigate('Study', { screen: 'StudyMain' });
             },
           })}
         />

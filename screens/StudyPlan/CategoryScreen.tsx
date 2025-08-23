@@ -1,7 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RouteProp } from '@react-navigation/native';
-import Realm from 'realm';
 import {
   View,
   Text,
@@ -12,10 +11,10 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
+import { useQuery } from '@realm/react';
 
 import { Context as PlanContext } from 'context/PlanContext';
 import { DEFAULT_CATEGORIES } from 'utils/enum';
-import { realmSchemas } from '../../schema/index';
 
 type RootStackParamList = {
   AllPlans: undefined;
@@ -23,12 +22,12 @@ type RootStackParamList = {
   PlanStartDate?: { edit?: boolean };
 };
 
-type TasksScreenProps = {
+type PlansScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, 'PlanCategory'>;
   route: RouteProp<RootStackParamList, 'PlanCategory'>;
 };
 
-const CategoryScreen = ({ navigation, route }: TasksScreenProps) => {
+const CategoryScreen = ({ navigation, route }: PlansScreenProps) => {
   const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
   const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
   const {
@@ -40,34 +39,25 @@ const CategoryScreen = ({ navigation, route }: TasksScreenProps) => {
   };
   const [categoryInput, setCategoryInput] = useState(category);
 
-  // Fetch categories from DB and merge with default categories
+  const planResults = useQuery('Plan');
+
+  // Merge DB categories with default categories
   useEffect(() => {
-    let realm: Realm;
-    try {
-      (async () => {
-        realm = await Realm.open({ schema: realmSchemas });
-        const tasks = realm.objects('Task');
-        const dbCategories = Array.from(
-          new Set(
-            tasks
-              .map((task: any) => task.category)
-              .filter((cat) => !!cat && typeof cat === 'string')
-          )
-        );
-        // Merge and deduplicate
-        setCategories(Array.from(new Set([...DEFAULT_CATEGORIES, ...dbCategories])));
-        realm.close();
-      })();
-    } catch (error) {
-      console.error('Error opening Realm:', error);
-      return;
-    }
-  }, []);
+    const dbCategories = Array.from(
+      new Set(
+        planResults
+          .map((plan: any) => plan.category)
+          .filter((cat) => !!cat && typeof cat === 'string')
+      )
+    );
+    setCategories(Array.from(new Set([...DEFAULT_CATEGORIES, ...dbCategories])));
+  }, [planResults]);
 
   // Filtered suggestions
   const filteredCategories = categoryInput
     ? categories.filter((cat) => cat.toLowerCase().includes(categoryInput.toLowerCase()))
     : categories;
+
   const handleNext = () => {
     // Add new category to suggestions if it's not already present
     if (category && !categories.includes(category)) {
@@ -77,8 +67,6 @@ const CategoryScreen = ({ navigation, route }: TasksScreenProps) => {
       ...route.params,
       edit: route.params?.edit ?? false,
     });
-    // Pass the category to the next screen or handle as needed
-    // navigation.navigate('NextScreen', { category }); // Replace 'NextScreen' with your actual next screen name
   };
 
   const handleSkip = () => {

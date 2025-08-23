@@ -1,13 +1,13 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Text, TouchableOpacity, View, ScrollView, Dimensions, RefreshControl } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import { useTodayPlan } from 'hooks/useTodayPlan';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import Streak from '../components/Streak';
-import { getWeeklyStudyData } from '../utils/db';
 import { WEEK_DAYS } from '../utils/enum';
 import { durationToString, formatDuration } from '../utils/time';
 import { TodaysPlan } from 'types';
+import { useWeeklyStudyData } from 'hooks/useWeeklyStudyData';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -20,34 +20,16 @@ type RootStackParamList = {
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
 const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) => {
-  const [refreshing, setRefreshing] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const today = new Date();
-  const { todayPlans, setRefreshKey: setPlanRefreshKey } = useTodayPlan(today);
-  const [studyData, setStudyData] = useState({
+  // const [studyData, setStudyData] = useState({
+  //   labels: WEEK_DAYS,
+  //   datasets: [{ data: [0, 0, 0, 0, 0, 0, 0] }],
+  // });
+  const { todaysPlans } = useTodayPlan(new Date());
+  const data = useWeeklyStudyData();
+  const studyData = {
     labels: WEEK_DAYS,
-    datasets: [{ data: [0, 0, 0, 0, 0, 0, 0] }],
-  });
-
-  useEffect(() => {
-    (async () => {
-      const data = await getWeeklyStudyData();
-      setStudyData((prev) => ({
-        ...prev,
-        datasets: [{ data }],
-      }));
-    })();
-  }, [refreshKey]);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setRefreshKey((k) => k + 1);
-      setPlanRefreshKey((k) => k + 1);
-      setRefreshing(false);
-    }, 2000);
-  }, []);
+    datasets: [{ data }],
+  };
 
   return (
     <>
@@ -57,12 +39,9 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
           className="mb-4 flex items-center rounded-lg bg-white p-6 py-2 shadow-lg"
           style={{ height: screenHeight * 0.25 }}>
           <Text className="mb-4 text-xl font-bold">Today Study Plans</Text>
-          <ScrollView
-            className="max-h-96 w-full"
-            style={{ flex: 1, backgroundColor: 'white' }}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+          <ScrollView className="max-h-96 w-full" style={{ flex: 1, backgroundColor: 'white' }}>
             <View className="flex gap-2">
-              {todayPlans.map((plan) => (
+              {todaysPlans.map((plan) => (
                 <TouchableOpacity
                   key={plan.id}
                   activeOpacity={0.7}
@@ -136,10 +115,8 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
           className="mb-2 flex w-full items-center rounded-lg bg-white p-6 py-2 shadow-lg"
           style={{ height: screenHeight * 0.18 }}>
           <Text className="mb-4 text-xl font-bold">Current Streak</Text>
-          <ScrollView
-            className="w-full"
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-            {todayPlans.map((plan) => (
+          <ScrollView className="w-full">
+            {todaysPlans.map((plan) => (
               <View key={plan.id} className="mb-2 flex-row items-center justify-between">
                 <Text className="text-lg font-semibold">{plan.title}</Text>
                 <Streak streak={plan.streak || 0} />
@@ -148,8 +125,6 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
           </ScrollView>
         </View>
       </View>
-
-      {/* <StatusBar style="auto" /> */}
     </>
   );
 };

@@ -1,11 +1,11 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { View, ScrollView } from 'react-native';
 import { type RouteProp } from '@react-navigation/native';
 
 import TodayTaskCard from '../components/TodayPlanCard';
-import { Context as planCollectionContext } from 'context/planCollectionContext';
+import { useTodayPlan } from 'hooks/useTodayPlan';
 
-import { PlanStatusType, TodaysPlan } from 'types';
+import { PlanStatusType } from 'types';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { durationToString } from 'utils/time';
 
@@ -14,29 +14,17 @@ function isNoTaskRunning(taskStates: Record<string, PlanStatusType>) {
 }
 
 type RootStackParamList = {
-  TodayMain?: {};
+  StudyMain?: {};
   StudyNow?: { planId: string };
 };
 
-type TodayPlanScreenProps = {
-  navigation: StackNavigationProp<RootStackParamList, 'TodayMain'>;
-  route: RouteProp<RootStackParamList, 'TodayMain'>;
+type StudyPlanScreenProps = {
+  navigation: StackNavigationProp<RootStackParamList, 'StudyMain'>;
+  route: RouteProp<RootStackParamList, 'StudyMain'>;
 };
 
-const TodayPlanScreen = ({ navigation }: TodayPlanScreenProps) => {
-  const {
-    state: { todaysPlans },
-    fetchTodaysPlans,
-  } = useContext(planCollectionContext) as {
-    state: { todaysPlans: TodaysPlan[] };
-    fetchTodaysPlans: () => Promise<void>;
-  };
-  useEffect(() => {
-    const fetchData = async () => {
-      await fetchTodaysPlans();
-    };
-    fetchData();
-  }, []);
+const StudyPlanScreen = ({ navigation }: StudyPlanScreenProps) => {
+  const { todaysPlans } = useTodayPlan(new Date());
 
   // Update taskStates whenever todayPlans changes
   const [taskStates, setTaskStates] = useState<Record<string, PlanStatusType>>({});
@@ -78,4 +66,4 @@ const TodayPlanScreen = ({ navigation }: TodayPlanScreenProps) => {
   );
 };
 
-export default TodayPlanScreen;
+export default StudyPlanScreen;

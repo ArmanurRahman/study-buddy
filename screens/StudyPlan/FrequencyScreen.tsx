@@ -15,10 +15,7 @@ import {
 import Frequency from 'components/Frequency';
 import Clock from 'components/Clock';
 import { Context as PlanContext } from 'context/PlanContext';
-import { realmSchemas } from 'schema';
-import { durationToString } from 'utils/time';
-import { TodaysPlan } from 'types';
-import { Context as planCollectionContext } from 'context/planCollectionContext';
+import { useSaveUpdatePlan } from 'hooks/useSaveUpdatePlan';
 
 type RootStackParamList = {
   AllPlans?: { needRefresh?: boolean };
@@ -52,21 +49,18 @@ const FrequencyScreen = ({ navigation, route }: TasksScreenProps) => {
       id: string;
       title: string;
       description?: string;
-      category?: string;
-      startDate?: string;
-      endDate?: string;
+      category: string;
+      startDate: Date | null;
+      endDate: Date | null;
       duration: { hours: string; minutes: string };
-      totalHours?: string;
-      frequency?: boolean[];
+      frequency: boolean[];
+      totalHours: number | null;
     };
     changeFrequency: (frequency: boolean[]) => void;
     changeDuration: (duration: { hours: string; minutes: string }) => void;
     changeId: (id: string) => void;
   };
-  const { fetchTodaysPlans } = useContext(planCollectionContext) as {
-    state: { todaysPlans: TodaysPlan[] };
-    fetchTodaysPlans: () => Promise<void>;
-  };
+  const saveUpdatePlan = useSaveUpdatePlan();
   // Save or update plan in Realm database
   const handleAddUpdatePlan = async () => {
     if (!title) {
@@ -81,56 +75,28 @@ const FrequencyScreen = ({ navigation, route }: TasksScreenProps) => {
       Alert.alert('Validation', 'Please select or add a category');
       return;
     }
-    let realm: Realm | undefined;
     try {
-      realm = await Realm.open({ schema: realmSchemas });
-
-      realm.write(() => {
-        if (route && route.params?.edit && id) {
-          // Update existing plan
-          const plan = realm?.objectForPrimaryKey('Plan', new Realm.BSON.ObjectId(id));
-          if (plan) {
-            plan.title = title;
-            plan.category = category;
-            plan.description = description;
-            plan.startDate = startDate;
-            plan.endDate = endDate;
-            plan.duration = durationToString(duration);
-            plan.frequency = JSON.stringify(frequency);
-            plan.totalHours = totalHours ? parseInt(totalHours) : null;
-          }
-          Alert.alert('Success', 'Plan updated!');
-        } else {
-          // Create new plan
-          const newId = new Realm.BSON.ObjectId();
-          realm?.create('Plan', {
-            _id: newId,
-            title,
-            category,
-            description,
-            startDate,
-            endDate,
-            duration: durationToString(duration),
-            frequency: JSON.stringify(frequency),
-            streak: 0,
-            totalHours: totalHours ? parseInt(totalHours) : null,
-            createdAt: new Date(),
-          });
-          changeId(newId.toHexString());
-          Alert.alert('Success', 'Plan added!');
-        }
+      saveUpdatePlan({
+        id,
+        title,
+        description,
+        category,
+        startDate,
+        endDate,
+        duration,
+        frequency,
+        totalHours,
       });
+      Alert.alert('Success', 'Plan added!');
     } catch (e) {
       console.error('Error saving plan:', e);
       Alert.alert('Error', 'Could not save plan.');
-    } finally {
-      if (realm && !realm.isClosed) realm.close();
     }
   };
 
   const updateAndFetch = async () => {
     await handleAddUpdatePlan();
-    await fetchTodaysPlans();
+    // await fetchTodaysPlans();
     navigation.navigate('AllPlans');
   };
   return (

@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useState } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,7 +12,7 @@ import { Plan } from 'types';
 import Streak from 'components/Streak';
 import CategoryIcon from 'components/CategoryIcon';
 import { Context as PlanContext } from 'context/PlanContext';
-import { Context as planCollectionContext } from 'context/planCollectionContext';
+import { useAllPlans } from 'hooks/useAllPlans';
 import { RouteProp } from '@react-navigation/native';
 import { useDeletePlan } from 'hooks/useDeletePlan';
 
@@ -34,20 +34,7 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
     changePlan: (plan: Plan) => void;
     resetPlan: () => void;
   };
-  const {
-    state: { allPlans: plans },
-    fetchAllPlans,
-  } = useContext(planCollectionContext) as {
-    state: { allPlans: Plan[] };
-    fetchAllPlans: () => Promise<void>;
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await fetchAllPlans();
-    };
-    fetchData();
-  }, []);
+  const { plans } = useAllPlans();
 
   const deletePlan = useDeletePlan();
 

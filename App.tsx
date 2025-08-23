@@ -1,17 +1,19 @@
 import AppNavigator from 'navigation/AppNavigator';
-import { Provider as PlanProvider } from './context/PlanContext';
-import { Provider as PlanCollectionProvider } from './context/planCollectionContext';
-import './global.css';
+import { RealmProvider } from '@realm/react';
 import { SafeAreaView } from 'react-native';
+
+import { realmSchemas } from './schema';
+import { Provider as PlanProvider } from './context/PlanContext';
+import './global.css';
 
 export default function App() {
   return (
-    <PlanCollectionProvider>
+    <RealmProvider schema={realmSchemas}>
       <PlanProvider>
         <SafeAreaView style={{ flex: 1 }}>
           <AppNavigator />
         </SafeAreaView>
       </PlanProvider>
-    </PlanCollectionProvider>
+    </RealmProvider>
   );
 }
