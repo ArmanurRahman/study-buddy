@@ -43,7 +43,6 @@ const FrequencyScreen = ({ navigation, route }: TasksScreenProps) => {
     },
     changeDuration,
     changeFrequency,
-    changeId,
   } = useContext(PlanContext) as {
     state: {
       id: string;
