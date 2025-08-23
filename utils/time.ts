@@ -18,10 +18,14 @@ export function formatDuration(duration: string) {
 }
 
 // Helper to check if today is between startDate and endDate (inclusive)
-export function isTodayInRange(startDate: Date, endDate: Date, today: Date) {
+export function isTodayInRange(startDate: Date, endDate: Date | undefined, today: Date) {
   const s = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-  const e = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
   const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  if (!endDate) {
+    // If no endDate, just check startDate
+    return t >= s;
+  }
+  const e = new Date(endDate?.getFullYear(), endDate?.getMonth(), endDate?.getDate());
   return t >= s && t <= e;
 }
 

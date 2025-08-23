@@ -17,8 +17,12 @@ export function useTodayPlan(today: Date, refreshKey?: number) {
       const plans = realm
         .objects('Plan')
         .filter((plan: any) => {
-          if (!plan.startDate || !plan.endDate) return false;
+          if (!plan.startDate) return false;
           const start = plan.startDate instanceof Date ? plan.startDate : new Date(plan.startDate);
+          // If endDate is not set, only check startDate
+          if (!plan.endDate) {
+            return isTodayInRange(start, undefined, today);
+          }
           const end = plan.endDate instanceof Date ? plan.endDate : new Date(plan.endDate);
           return isTodayInRange(start, end, today);
         })
