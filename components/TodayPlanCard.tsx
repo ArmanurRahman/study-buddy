@@ -246,57 +246,74 @@ const TodayPlanCard = ({
       <View
         style={{
           width: '100%',
-          marginBottom: 18,
-          borderRadius: 18,
+          marginBottom: 22,
+          borderRadius: 22,
           overflow: 'hidden',
-          shadowColor: '#2563eb',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.12,
-          shadowRadius: 16,
-          elevation: 6,
           backgroundColor: '#fff',
-          borderWidth: 1,
-          borderColor: '#e5e7eb',
+          borderWidth: 0,
+          shadowColor: '#2563eb',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.13,
+          shadowRadius: 24,
+          elevation: 8,
         }}>
-        {/* Accent bar */}
+        {/* Gradient Accent Bar */}
         <View
           style={{
-            height: 5,
+            height: 6,
             width: '100%',
-            backgroundColor:
-              status === 'completed'
-                ? '#10b981'
-                : status === 'running'
-                  ? '#2563eb'
-                  : status === 'paused'
-                    ? '#f59e42'
-                    : '#e5e7eb',
-            opacity: 0.9,
-          }}
-        />
-        <View style={{ padding: 20 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-            <CategoryIcon category={category} />
-            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#1e293b', flex: 1 }}>
+            backgroundColor: 'transparent',
+            opacity: 1,
+          }}>
+          <View
+            style={{
+              height: '100%',
+              width: '100%',
+              borderTopLeftRadius: 22,
+              borderTopRightRadius: 22,
+              backgroundColor:
+                status === 'completed'
+                  ? '#10b981'
+                  : status === 'running'
+                    ? '#2563eb'
+                    : status === 'paused'
+                      ? '#f59e42'
+                      : '#e5e7eb',
+              opacity: 0.95,
+            }}
+          />
+        </View>
+        <View style={{ padding: 22 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+            <View
+              style={{
+                backgroundColor: '#f1f5f9',
+                borderRadius: 12,
+                padding: 8,
+                marginRight: 10,
+              }}>
+              <CategoryIcon category={category} />
+            </View>
+            <Text style={{ fontSize: 22, fontWeight: 'bold', color: '#1e293b', flex: 1 }}>
               {title}
             </Text>
             {status === 'completed' && (
               <Ionicons
                 name="checkmark-circle"
-                size={22}
+                size={24}
                 color="#10b981"
                 style={{ marginLeft: 8 }}
               />
             )}
             {status === 'running' && (
-              <Ionicons name="play-circle" size={22} color="#2563eb" style={{ marginLeft: 8 }} />
+              <Ionicons name="play-circle" size={24} color="#2563eb" style={{ marginLeft: 8 }} />
             )}
             {status === 'paused' && (
-              <Ionicons name="pause-circle" size={22} color="#f59e42" style={{ marginLeft: 8 }} />
+              <Ionicons name="pause-circle" size={24} color="#f59e42" style={{ marginLeft: 8 }} />
             )}
           </View>
           {description ? (
-            <Text style={{ color: '#64748b', fontSize: 16, marginBottom: 10, marginLeft: 2 }}>
+            <Text style={{ color: '#64748b', fontSize: 16, marginBottom: 12, marginLeft: 2 }}>
               {description}
             </Text>
           ) : null}
@@ -304,14 +321,18 @@ const TodayPlanCard = ({
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              marginBottom: 10,
+              marginBottom: 14,
               justifyContent: 'space-between',
             }}>
             <View
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'space-between',
+                backgroundColor: '#f1f5f9',
+                borderRadius: 8,
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                marginRight: 10,
               }}>
               <Ionicons name="time-outline" size={18} color="#2563eb" style={{ marginRight: 4 }} />
               <Text style={{ fontWeight: '600', color: '#2563eb', fontSize: 15 }}>
@@ -322,11 +343,10 @@ const TodayPlanCard = ({
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginLeft: 16,
-                backgroundColor: '#f1f5f9',
+                backgroundColor: '#f9fafb',
                 borderRadius: 8,
-                paddingHorizontal: 10,
-                paddingVertical: 2,
+                paddingHorizontal: 12,
+                paddingVertical: 4,
               }}>
               <Streak streak={streak || 0} />
             </View>
@@ -343,12 +363,17 @@ const TodayPlanCard = ({
                       : isNoTaskRunning || status === 'running'
                         ? '#2563eb'
                         : '#cbd5e1',
-                  borderRadius: 8,
-                  paddingVertical: 12,
+                  borderRadius: 10,
+                  paddingVertical: 13,
                   alignItems: 'center',
                   flexDirection: 'row',
                   justifyContent: 'center',
                   marginRight: 6,
+                  shadowColor: '#2563eb',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 4,
+                  elevation: 2,
                 }}
                 onPress={() => {
                   setTimerVisible(true);
@@ -372,11 +397,16 @@ const TodayPlanCard = ({
                 style={{
                   flex: 1,
                   backgroundColor: '#10b981',
-                  borderRadius: 8,
-                  paddingVertical: 12,
+                  borderRadius: 10,
+                  paddingVertical: 13,
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginLeft: 6,
+                  shadowColor: '#10b981',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 4,
+                  elevation: 2,
                 }}
                 onPress={completeTask}
                 activeOpacity={0.85}>
@@ -387,13 +417,14 @@ const TodayPlanCard = ({
           {status === 'completed' && (
             <Text
               style={{
-                marginTop: 14,
+                marginTop: 18,
                 textAlign: 'center',
                 fontWeight: 'bold',
                 color: '#10b981',
-                fontSize: 16,
+                fontSize: 17,
+                letterSpacing: 0.5,
               }}>
-              Study Completed!
+              🎉 Study Completed!
             </Text>
           )}
         </View>

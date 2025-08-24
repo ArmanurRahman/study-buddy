@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Modal, Animated, Easing } from 'react-native';
-import { Svg, Circle } from 'react-native-svg';
+import { View, Text, TouchableOpacity, Modal, Animated, Easing, Platform } from 'react-native';
+import { Svg, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 type TimerModalProps = {
   visible: boolean;
@@ -18,8 +18,8 @@ type TimerModalProps = {
   intervalRef: React.RefObject<NodeJS.Timeout | null>;
 };
 
-const RADIUS = 60;
-const STROKE = 8;
+const RADIUS = 120;
+const STROKE = 20;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 const TimerModal = ({
@@ -79,13 +79,13 @@ const TimerModal = ({
         Animated.sequence([
           Animated.timing(pulseAnim, {
             toValue: 1.08,
-            duration: 2000,
+            duration: 1200,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
           Animated.timing(pulseAnim, {
             toValue: 1,
-            duration: 20000,
+            duration: 1200,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
@@ -107,17 +107,17 @@ const TimerModal = ({
         Animated.sequence([
           Animated.timing(warningAnim, {
             toValue: 1,
-            duration: 1000,
+            duration: 300,
             useNativeDriver: true,
           }),
           Animated.timing(warningAnim, {
             toValue: -1,
-            duration: 1000,
+            duration: 300,
             useNativeDriver: true,
           }),
           Animated.timing(warningAnim, {
             toValue: 0,
-            duration: 1000,
+            duration: 300,
             useNativeDriver: true,
           }),
         ])
@@ -129,14 +129,20 @@ const TimerModal = ({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 items-center justify-center bg-black/50">
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'rgba(16,23,42,0.65)',
+        }}>
         <Animated.View
           style={{
-            width: 320,
+            width: 340,
             alignItems: 'center',
-            borderRadius: 18,
+            borderRadius: 22,
             backgroundColor: '#fff',
-            padding: 24,
+            padding: 28,
             opacity: opacityAnim,
             transform: [{ scale: scaleAnim }],
             shadowColor: '#2563eb',
@@ -145,11 +151,23 @@ const TimerModal = ({
             shadowRadius: 24,
             elevation: 12,
           }}>
-          <Text className="mb-4 text-2xl font-bold text-blue-700">Study Timer</Text>
+          <Text
+            style={{
+              marginBottom: 18,
+              fontSize: 28,
+              fontWeight: 'bold',
+              color: '#2563eb',
+              letterSpacing: 0.5,
+              textShadowColor: '#c7d2fe',
+              textShadowOffset: { width: 0, height: 2 },
+              textShadowRadius: 8,
+            }}>
+            Study Timer
+          </Text>
           {/* Clock-like timer with pulse and warning shake */}
           <Animated.View
             style={{
-              marginBottom: 24,
+              marginBottom: 28,
               alignItems: 'center',
               justifyContent: 'center',
               transform: [
@@ -158,13 +176,19 @@ const TimerModal = ({
                   ? {
                       translateX: warningAnim.interpolate({
                         inputRange: [-1, 1],
-                        outputRange: [-8, 8],
+                        outputRange: [-10, 10],
                       }),
                     }
                   : { translateX: 0 },
               ],
             }}>
             <Svg width={2 * (RADIUS + STROKE)} height={2 * (RADIUS + STROKE)}>
+              <Defs>
+                <LinearGradient id="timerGradient" x1="0" y1="0" x2="1" y2="1">
+                  <Stop offset="0%" stopColor="#2563eb" />
+                  <Stop offset="100%" stopColor="#10b981" />
+                </LinearGradient>
+              </Defs>
               <Circle
                 cx={RADIUS + STROKE}
                 cy={RADIUS + STROKE}
@@ -177,7 +201,7 @@ const TimerModal = ({
                 cx={RADIUS + STROKE}
                 cy={RADIUS + STROKE}
                 r={RADIUS}
-                stroke={currentSeconds <= 60 && running ? '#f59e42' : '#2563eb'}
+                stroke={currentSeconds <= 60 && running ? '#f59e42' : 'url(#timerGradient)'}
                 strokeWidth={STROKE}
                 fill="none"
                 strokeDasharray={CIRCUMFERENCE}
@@ -190,44 +214,80 @@ const TimerModal = ({
             <Text
               style={{
                 position: 'absolute',
-                left: RADIUS + STROKE - 48,
-                top: RADIUS + STROKE - 12,
-                width: 96,
+                left: RADIUS + STROKE - 100,
+                top: RADIUS + STROKE - 18,
+                width: 200,
                 textAlign: 'center',
-                fontSize: 28,
-                fontFamily: 'monospace',
+                fontSize: 34,
+                fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
                 color: currentSeconds <= 60 && running ? '#f59e42' : running ? '#2563eb' : '#111',
                 fontWeight: 'bold',
                 letterSpacing: 2,
+                textShadowColor: '#c7d2fe',
+                textShadowOffset: { width: 0, height: 2 },
+                textShadowRadius: 8,
               }}>
               {`${hours ? hours.toString().padStart(2, '0') + ':' : ''}${minutes
                 .toString()
                 .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`}
             </Text>
           </Animated.View>
-          <View className="mb-4 flex-row">
+          <View style={{ marginBottom: 18, flexDirection: 'row', gap: 10 }}>
             {!running ? (
               <TouchableOpacity
-                className="mr-2 rounded bg-blue-600 px-5 py-2"
+                style={{
+                  flex: 1,
+                  backgroundColor: '#2563eb',
+                  borderRadius: 10,
+                  paddingVertical: 13,
+                  alignItems: 'center',
+                  shadowColor: '#2563eb',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 4,
+                  elevation: 2,
+                }}
                 onPress={resumeTimer}
                 activeOpacity={0.85}>
-                <Text className="text-lg font-bold text-white">
+                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 17 }}>
                   {currentSeconds === totalSeconds ? 'Start' : 'Resume'}
                 </Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                className="mr-2 rounded bg-yellow-500 px-5 py-2"
+                style={{
+                  flex: 1,
+                  backgroundColor: '#f59e42',
+                  borderRadius: 10,
+                  paddingVertical: 13,
+                  alignItems: 'center',
+                  shadowColor: '#f59e42',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 4,
+                  elevation: 2,
+                }}
                 onPress={pauseTimer}
                 activeOpacity={0.85}>
-                <Text className="text-lg font-bold text-white">Pause</Text>
+                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 17 }}>Pause</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
-              className="rounded bg-gray-400 px-5 py-2"
+              style={{
+                flex: 1,
+                backgroundColor: '#64748b',
+                borderRadius: 10,
+                paddingVertical: 13,
+                alignItems: 'center',
+                shadowColor: '#64748b',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: 4,
+                elevation: 2,
+              }}
               onPress={resetTimer}
               activeOpacity={0.85}>
-              <Text className="text-lg font-bold text-white">Reset</Text>
+              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 17 }}>Reset</Text>
             </TouchableOpacity>
           </View>
           <TouchableOpacity
