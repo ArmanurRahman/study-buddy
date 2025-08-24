@@ -2,10 +2,10 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
   Dimensions,
   Image,
   StyleSheet,
+  Animated,
 } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 import { useTodayPlan } from 'hooks/useTodayPlan';
@@ -16,6 +16,7 @@ import { durationToString, formatDuration } from '../utils/time';
 import { TodaysPlan } from 'types';
 import { useWeeklyStudyData } from 'hooks/useWeeklyStudyData';
 import { Ionicons } from '@expo/vector-icons';
+import { useRef } from 'react';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -35,24 +36,53 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
     datasets: [{ data }],
   };
 
+  // Animated value for scroll
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  // Interpolate header translateY
+  const headerTranslateY = scrollY.interpolate({
+    inputRange: [0, 80],
+    outputRange: [0, -130],
+    extrapolate: 'clamp',
+  });
+
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       {/* Header */}
-      <View style={styles.headerContainer}>
-        <View>
-          <Text style={styles.greeting}>👋 Welcome back!</Text>
-          <Text style={styles.subtitle}>Ready to achieve your study goals today?</Text>
+      <Animated.View
+        style={[
+          styles.headerContainer,
+          {
+            transform: [{ translateY: headerTranslateY }],
+            zIndex: 10,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+          },
+        ]}>
+        <View style={styles.headerContainer}>
+          <View>
+            <Text style={styles.greeting}>👋 Welcome back!</Text>
+            <Text style={styles.subtitle}>Ready to achieve your study goals today?</Text>
+          </View>
+          <View style={styles.headerImageWrapper}>
+            <Image
+              source={require('../assets/images/study_illustration.png')}
+              style={styles.headerImage}
+              resizeMode="contain"
+            />
+          </View>
         </View>
-        <View style={styles.headerImageWrapper}>
-          <Image
-            source={require('../assets/images/study_illustration.png')}
-            style={styles.headerImage}
-            resizeMode="contain"
-          />
-        </View>
-      </View>
+      </Animated.View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
+      <Animated.ScrollView
+        contentContainerStyle={{ paddingBottom: 16, paddingTop: 160 }}
+        scrollEventThrottle={16}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+          useNativeDriver: true,
+        })}
+        showsVerticalScrollIndicator={false}>
         {/* Today's Study Plans */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
@@ -171,17 +201,17 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
               No streaks yet. Start studying to build your streak!
             </Text>
           ) : (
-            <ScrollView style={{ maxHeight: 100 }} showsVerticalScrollIndicator={false}>
+            <View>
               {todaysPlans.map((plan) => (
                 <View key={plan.id} style={styles.streakRow}>
                   <Text style={styles.streakPlanTitle}>{plan.title}</Text>
                   <Streak streak={plan.streak || 0} />
                 </View>
               ))}
-            </ScrollView>
+            </View>
           )}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 };
@@ -192,8 +222,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#2563eb',
     paddingHorizontal: 20,
-    paddingTop: 48,
-    paddingBottom: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
     justifyContent: 'space-between',
