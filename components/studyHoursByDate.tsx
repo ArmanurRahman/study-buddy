@@ -79,7 +79,6 @@ const StudyCalendar = () => {
 
   return (
     <View className="mb-6">
-      <Text className="mb-2 text-lg font-semibold">Study Calendar</Text>
       <Calendar
         markingType={'custom'}
         markedDates={getMarkedDates(studyMinutesByDate)}

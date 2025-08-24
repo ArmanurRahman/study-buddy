@@ -1,5 +1,5 @@
 import { useMemo, useRef, useEffect, useState } from 'react';
-import { View, Text, ScrollView, Dimensions, Animated } from 'react-native';
+import { View, Text, ScrollView, Dimensions, Animated, StyleSheet } from 'react-native';
 import { BarChart, PieChart, ProgressChart } from 'react-native-chart-kit';
 import { useQuery } from '@realm/react';
 
@@ -38,13 +38,13 @@ const ProgressScreen = () => {
           : String(p._id) === String(status.planId)
       );
       if (plan && plan.category) {
-        let hours = 0;
+        let minutes = 0;
         if (typeof status.passedTime === 'number') {
-          hours = status.passedTime;
+          minutes = status.passedTime;
         } else if (plan.duration) {
-          hours = timeStringToHours(plan.duration as string);
+          minutes = timeStringToHours(plan.duration as string);
         }
-        categoryTotals[plan.category].completed += hours;
+        categoryTotals[plan.category].completed += minutes / 60;
       }
     });
 
@@ -108,68 +108,227 @@ const ProgressScreen = () => {
   }, [progressData.data.join(',')]);
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16 }}>
-      <Text className="mb-4 text-2xl font-bold">Progress Overview</Text>
+    <ScrollView
+      contentContainerStyle={{ padding: 0, backgroundColor: '#f3f4f6' }}
+      showsVerticalScrollIndicator={false}>
+      <View style={styles.headerCard}>
+        <Text style={styles.headerTitle}>📈 Progress Overview</Text>
+        <Text style={styles.headerSubtitle}>
+          Track your study journey and celebrate your achievements!
+        </Text>
+      </View>
 
-      <Text className="mb-2 text-lg font-semibold">Hours Studied</Text>
-      <BarChart
-        data={barData}
-        width={screenWidth - 32}
-        height={220}
-        yAxisSuffix="h"
-        yAxisLabel=""
-        chartConfig={{
-          backgroundColor: '#fff',
-          backgroundGradientFrom: '#fff',
-          backgroundGradientTo: '#fff',
-          decimalPlaces: 1,
-          color: (opacity = 1) => `rgba(37, 99, 235, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(55, 65, 81, ${opacity})`,
-          style: { borderRadius: 16 },
-        }}
-        style={{ borderRadius: 16, marginBottom: 24 }}
-        fromZero
-        showValuesOnTopOfBars
-      />
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionTitle}>Hours Studied</Text>
+        <BarChart
+          data={barData}
+          width={screenWidth - 46}
+          height={200}
+          yAxisSuffix="h"
+          yAxisLabel=""
+          chartConfig={{
+            backgroundColor: '#fff',
+            backgroundGradientFrom: '#fff',
+            backgroundGradientTo: '#fff',
+            decimalPlaces: 1,
+            color: (opacity = 1) => `rgba(37, 99, 235, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(55, 65, 81, ${opacity})`,
+            style: { borderRadius: 16 },
+          }}
+          style={{
+            borderRadius: 16,
+            marginLeft: -18,
+            marginBottom: 8,
+            marginTop: 8,
+          }}
+          fromZero
+          showValuesOnTopOfBars
+        />
+      </View>
 
-      <Text className="mb-2 text-lg font-semibold">Study Distribution</Text>
-      <PieChart
-        data={pieData}
-        width={screenWidth - 32}
-        height={200}
-        chartConfig={{
-          color: (opacity = 1) => `rgba(37, 99, 235, ${opacity})`,
-        }}
-        accessor="population"
-        backgroundColor="#fff"
-        paddingLeft="15"
-        absolute
-        style={{ borderRadius: 16 }}
-      />
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionTitle}>Completed Study Distribution</Text>
+        <View style={{ overflow: 'hidden' }}>
+          <PieChart
+            data={pieData.map((item) => ({
+              ...item,
+              name: `${item.name} (${item.population > 0 ? Math.round((item.population / pieData.reduce((sum, d) => sum + d.population, 0)) * 100) : 0}%)`,
+            }))}
+            width={screenWidth - 46}
+            height={200}
+            chartConfig={{
+              color: (opacity = 1) => `rgba(37, 99, 235, ${opacity})`,
+            }}
+            accessor="population"
+            backgroundColor="#fff"
+            paddingLeft="10"
+            absolute
+            style={{
+              borderRadius: 16,
+              marginTop: 8,
+              marginBottom: 8,
+              transform: [{ translateX: (screenWidth - 46) / 2 - 120 }],
+            }}
+            hasLegend={false}
+          />
+          {/* Custom legend at the bottom */}
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              marginTop: 12,
+            }}>
+            {pieData.map((item, idx) => {
+              const total = pieData.reduce((sum, d) => sum + d.population, 0);
+              const percent = total > 0 ? Math.round((item.population / total) * 100) : 0;
+              return (
+                <View
+                  key={item.name}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginHorizontal: 8,
+                    marginBottom: 6,
+                  }}>
+                  <View
+                    style={{
+                      width: 14,
+                      height: 14,
+                      borderRadius: 7,
+                      backgroundColor: item.color,
+                      marginRight: 6,
+                    }}
+                  />
+                  <Text style={{ color: '#222', fontSize: 14 }}>
+                    {item.name} ({percent}%)
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      </View>
 
-      <Text className="mb-2 text-lg font-semibold">Completion Progress</Text>
-      <ProgressChart
-        data={{
-          labels: progressData.labels,
-          data: animatedProgress,
-        }}
-        width={screenWidth - 32}
-        height={200}
-        strokeWidth={16}
-        radius={32}
-        chartConfig={{
-          backgroundColor: '#fff',
-          backgroundGradientFrom: '#fff',
-          backgroundGradientTo: '#fff',
-          color: (opacity = 1) => `rgba(37, 99, 235, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(55, 65, 81, ${opacity})`,
-        }}
-        hideLegend={false}
-        absolute
-      />
-      <StudyCalendar />
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionTitle}>Completion Progress</Text>
+        <View style={{ overflow: 'hidden' }}>
+          <ProgressChart
+            data={{
+              labels: progressData.labels,
+              data: animatedProgress,
+            }}
+            width={screenWidth - 46}
+            height={200}
+            strokeWidth={18}
+            radius={38}
+            chartConfig={{
+              backgroundColor: '#fff',
+              backgroundGradientFrom: '#fff',
+              backgroundGradientTo: '#fff',
+              color: (opacity = 1, index = 0) => PIE_COLORS[index % PIE_COLORS.length],
+              labelColor: (opacity = 1) => `rgba(55, 65, 81, ${opacity})`,
+            }}
+            hideLegend={true}
+            absolute
+            style={{
+              borderRadius: 16,
+              marginTop: 8,
+              marginBottom: 8,
+              transform: [{ translateX: -10 }],
+            }}
+          />
+          {/* Custom labels below the chart */}
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              marginTop: 12,
+            }}>
+            {progressData.labels.map((label, idx) => (
+              <View
+                key={label}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginHorizontal: 10,
+                  marginBottom: 6,
+                }}>
+                <View
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: 7,
+                    backgroundColor: PIE_COLORS[idx % PIE_COLORS.length],
+                    marginRight: 6,
+                  }}
+                />
+                <Text style={{ color: '#222', fontSize: 14 }}>
+                  {label} ({Math.round((animatedProgress[idx] || 0) * 100)}%)
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.sectionCard}>
+        <Text style={styles.sectionTitle}>Study Calendar</Text>
+        <View style={{ marginTop: 8 }}>
+          <StudyCalendar />
+        </View>
+      </View>
     </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  headerCard: {
+    backgroundColor: '#2563eb',
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    paddingTop: 44,
+    paddingBottom: 28,
+    paddingHorizontal: 28,
+    marginBottom: 10,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.09,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  headerTitle: {
+    color: '#fff',
+    fontSize: 26,
+    fontWeight: 'bold',
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  headerSubtitle: {
+    color: '#dbeafe',
+    fontSize: 15,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  sectionCard: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 18,
+    marginHorizontal: 16,
+    marginTop: 18,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.09,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2563eb',
+    marginBottom: 8,
+  },
+});
 
 export default ProgressScreen;
