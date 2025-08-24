@@ -1,8 +1,7 @@
 import { useContext, useState } from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { Ionicons } from '@expo/vector-icons';
-import type { StackNavigationProp } from '@react-navigation/stack';
 import LinearGradient from 'react-native-linear-gradient';
 
 import AddTask from '../components/AddTask';
@@ -22,7 +21,7 @@ type RootStackParamList = {
 };
 
 type TasksScreenProps = {
-  navigation: StackNavigationProp<RootStackParamList, 'AllPlans'>;
+  navigation: any;
   route: RouteProp<RootStackParamList, 'AllPlans'>;
 };
 
@@ -63,12 +62,12 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
   };
 
   return (
-    <View className="relative flex-1 bg-gray-50">
+    <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
+      <Text style={styles.headerTitle}>All Study Plans</Text>
       <SwipeListView
         data={plans}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16 }}
-        // refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        contentContainerStyle={{ padding: 16, paddingTop: 0, paddingBottom: 80 }}
         renderItem={({ item: plan }) => (
           <TouchableOpacity
             activeOpacity={0.92}
@@ -77,117 +76,50 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
               changePlan(plan);
               navigation.navigate('PlanTitle', { edit: true });
             }}
-            style={{
-              marginBottom: 18,
-              borderRadius: 18,
-              overflow: 'hidden',
-              shadowColor: '#2563eb',
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.1,
-              shadowRadius: 16,
-              elevation: 6,
-              backgroundColor: '#fff',
-            }}>
-            {/* Accent bar */}
+            style={styles.cardContainer}>
+            {/* Gradient Accent Bar */}
             <LinearGradient
-              colors={['#2563eb', '#f59e42']}
+              colors={['#2563eb', '#10b981']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={{ height: 6, width: '100%' }}
+              style={styles.accentBar}
             />
-            <View style={{ padding: 20 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                <CategoryIcon category={plan.category} />
-                <Text
-                  style={{
-                    fontSize: 22,
-                    fontWeight: 'bold',
-                    color: '#1e293b',
-                    flex: 1,
-                    marginLeft: 8,
-                  }}>
-                  {plan.title}
-                </Text>
-                <View
-                  style={{
-                    backgroundColor: '#f1f5f9',
-                    borderRadius: 8,
-                    paddingHorizontal: 10,
-                    paddingVertical: 4,
-                    marginLeft: 8,
-                  }}>
-                  <Text style={{ color: '#2563eb', fontWeight: '600', fontSize: 13 }}>
-                    {plan.category || 'General'}
-                  </Text>
+            <View style={styles.cardContent}>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.categoryIconWrapper}>
+                  <CategoryIcon category={plan.category} />
+                </View>
+                <Text style={styles.planTitle}>{plan.title}</Text>
+                <View style={styles.categoryLabel}>
+                  <Text style={styles.categoryLabelText}>{plan.category || 'General'}</Text>
                 </View>
               </View>
               {plan.description ? (
-                <Text
-                  style={{
-                    color: '#64748b',
-                    fontSize: 16,
-                    marginBottom: 12,
-                    marginLeft: 2,
-                  }}>
-                  {plan.description}
-                </Text>
+                <Text style={styles.planDescription}>{plan.description}</Text>
               ) : null}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: 6,
-                }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={styles.cardInfoRow}>
+                <View style={styles.durationWrapper}>
                   <Ionicons
                     name="time-outline"
                     size={18}
                     color="#2563eb"
                     style={{ marginRight: 4 }}
                   />
-                  <Text style={{ fontWeight: '600', color: '#2563eb', fontSize: 15 }}>
+                  <Text style={styles.durationText}>
                     {formatDuration(durationToString(plan.duration))}
                   </Text>
                 </View>
                 <Streak streak={plan.streak || 0} />
               </View>
               {plan.frequency && (
-                <Text
-                  style={{
-                    marginTop: 2,
-                    color: '#94a3b8',
-                    fontSize: 13,
-                    fontStyle: 'italic',
-                    marginLeft: 2,
-                  }}>
-                  {frequencyToSentence(plan.frequency)}
-                </Text>
+                <Text style={styles.frequencyText}>{frequencyToSentence(plan.frequency)}</Text>
               )}
             </View>
           </TouchableOpacity>
         )}
         renderHiddenItem={({ item }) => (
-          <View
-            style={{
-              flex: 1,
-              flexDirection: 'row',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              marginBottom: 18,
-              borderRadius: 18,
-              overflow: 'hidden',
-            }}>
-            <TouchableOpacity
-              style={{
-                backgroundColor: '#ef4444',
-                justifyContent: 'center',
-                alignItems: 'center',
-                width: 80,
-                height: '100%',
-                borderRadius: 18,
-              }}
-              onPress={() => handleDelete(item.id)}>
+          <View style={styles.hiddenRow}>
+            <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
               <Ionicons name="trash-outline" size={28} color="#fff" />
             </TouchableOpacity>
           </View>
@@ -199,18 +131,7 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
       {/* Floating Add Button */}
       {!addTaskModalVisible && (
         <TouchableOpacity
-          style={{
-            position: 'absolute',
-            right: 32,
-            bottom: 16,
-            zIndex: 10,
-            shadowColor: '#2563eb',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.2,
-            shadowRadius: 8,
-            elevation: 8,
-          }}
-          className="rounded-full bg-blue-600 p-4"
+          style={styles.fab}
           onPress={() => {
             resetPlan();
             navigation.navigate('PlanTitle');
@@ -221,9 +142,133 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
       )}
       {/* Modal for Add Task */}
       {addTaskModalVisible && <AddTask onClose={handleCloseAdd} />}
-      {/* Modal for Edit Task */}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#2563eb',
+    marginTop: 24,
+    marginBottom: 12,
+    marginLeft: 24,
+    letterSpacing: 0.5,
+  },
+  cardContainer: {
+    marginBottom: 18,
+    borderRadius: 22,
+    overflow: 'hidden',
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.13,
+    shadowRadius: 24,
+    elevation: 8,
+    backgroundColor: '#fff',
+  },
+  accentBar: {
+    height: 7,
+    width: '100%',
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+  },
+  cardContent: {
+    padding: 22,
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  categoryIconWrapper: {
+    backgroundColor: '#f1f5f9',
+    borderRadius: 12,
+    padding: 8,
+    marginRight: 10,
+  },
+  planTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    flex: 1,
+  },
+  categoryLabel: {
+    backgroundColor: '#f1f5f9',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginLeft: 8,
+  },
+  categoryLabelText: {
+    color: '#2563eb',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  planDescription: {
+    color: '#64748b',
+    fontSize: 16,
+    marginBottom: 12,
+    marginLeft: 2,
+  },
+  cardInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  durationWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f1f5f9',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginRight: 10,
+  },
+  durationText: {
+    fontWeight: '600',
+    color: '#2563eb',
+    fontSize: 15,
+  },
+  frequencyText: {
+    marginTop: 2,
+    color: '#94a3b8',
+    fontSize: 13,
+    fontStyle: 'italic',
+    marginLeft: 2,
+  },
+  hiddenRow: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginBottom: 18,
+    borderRadius: 22,
+    overflow: 'hidden',
+  },
+  deleteButton: {
+    backgroundColor: '#ef4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: '100%',
+    borderRadius: 22,
+  },
+  fab: {
+    position: 'absolute',
+    right: 32,
+    bottom: 24,
+    zIndex: 10,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+    borderRadius: 32,
+    backgroundColor: '#2563eb',
+    padding: 18,
+  },
+});
 
 export default AllPlansScreen;

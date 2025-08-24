@@ -69,7 +69,7 @@ const CreatePlanStack = () => (
     <Stack.Screen
       name="AllPlans"
       component={AllPlansScreen}
-      options={{ title: 'All Plans', headerLeft: () => null, gestureEnabled: false }}
+      options={{ title: 'Plans', headerLeft: () => null, gestureEnabled: false }}
     />
     <Stack.Screen
       name="PlanTitle"
@@ -155,7 +155,7 @@ const AppNavigator = () => {
               iconName = 'home-outline';
             } else if (route.name === 'Study') {
               iconName = 'book-outline';
-            } else if (route.name === 'Tasks') {
+            } else if (route.name === 'Plans') {
               iconName = 'list-outline';
             } else if (route.name === 'Progress') {
               iconName = 'bar-chart-outline';
@@ -189,7 +189,7 @@ const AppNavigator = () => {
             },
           })}
         />
-        <Tab.Screen name="Tasks" component={CreatePlanStack} options={{ headerShown: false }} />
+        <Tab.Screen name="Plans" component={CreatePlanStack} options={{ headerShown: false }} />
         <Tab.Screen name="Progress" component={ProgressScreen} />
       </Tab.Navigator>
     </NavigationContainer>
