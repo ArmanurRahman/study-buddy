@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RouteProp } from '@react-navigation/native';
 import {
@@ -61,8 +61,15 @@ const FrequencyScreen = ({ navigation, route }: TasksScreenProps) => {
     changeId: (id: string) => void;
   };
   const saveUpdatePlan = useSaveUpdatePlan();
+  const isFirstLoad = useRef(true);
 
   useEffect(() => {
+    if (isFirstLoad.current) {
+      isFirstLoad.current = false;
+    }
+    if (isFirstLoad.current && route.params?.edit) {
+      return;
+    }
     if (totalHours && frequency && frequency.filter(Boolean).length > 0) {
       changeDuration(
         getAutoDuration({
