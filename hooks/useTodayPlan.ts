@@ -1,22 +1,44 @@
-import { useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 import { useQuery } from '@realm/react';
 import { isTodayInRange, stringToDuration } from '../utils/time';
 import { TodaysPlan, PlanStatusType } from '../types';
+import { DayContext } from 'context/DayContext';
 
 export function useTodayPlan(today: Date) {
   const planResults = useQuery('Plan');
   const planStatusResults = useQuery('PlanStatus');
+  const { currentDay } = useContext(DayContext);
 
   const todaysPlans: TodaysPlan[] = useMemo(() => {
+    // Get today's day index (0=Monday, ..., 6=Sunday)
+    let todayIdx = today.getDay();
+    todayIdx = todayIdx === 0 ? 6 : todayIdx - 1;
+
     return planResults
       .filter((plan: any) => {
         if (!plan.startDate) return false;
         const start = plan.startDate instanceof Date ? plan.startDate : new Date(plan.startDate);
         if (!plan.endDate) {
-          return isTodayInRange(start, undefined, today);
+          if (!isTodayInRange(start, undefined, today)) return false;
+        } else {
+          const end = plan.endDate instanceof Date ? plan.endDate : new Date(plan.endDate);
+          if (!isTodayInRange(start, end, today)) return false;
         }
-        const end = plan.endDate instanceof Date ? plan.endDate : new Date(plan.endDate);
-        return isTodayInRange(start, end, today);
+
+        // Frequency check
+        let frequency: boolean[] = [];
+        try {
+          frequency = Array.isArray(plan.frequency)
+            ? plan.frequency
+            : JSON.parse(plan.frequency as string);
+        } catch {
+          frequency = [false, false, false, false, false, false, false];
+        }
+        // If frequency is set and today is not included, skip this plan
+        if (frequency.length > 0 && !frequency[todayIdx]) {
+          return false;
+        }
+        return true;
       })
       .map((plan: any) => {
         const planId = plan._id?.toHexString ? plan._id.toHexString() : String(plan._id);
@@ -49,7 +71,6 @@ export function useTodayPlan(today: Date) {
           status: (statusObj && statusObj.status ? statusObj.status : 'idle') as PlanStatusType,
         };
       });
-  }, [planResults, planStatusResults, today.getDate()]);
-
+  }, [planResults, planStatusResults, currentDay]);
   return { todaysPlans };
 }

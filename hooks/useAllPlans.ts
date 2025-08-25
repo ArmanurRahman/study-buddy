@@ -1,12 +1,13 @@
-import { useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 import { useQuery } from '@realm/react';
 import { Plan } from 'types';
 import { stringToDuration } from '../utils/time';
+import { DayContext } from 'context/DayContext';
 
 export const useAllPlans = () => {
   // Get live Realm objects using @realm/react
   const planResults = useQuery('Plan');
-
+  const { currentDay } = useContext(DayContext);
   // Convert Realm objects to plain JS objects
   const plans: Plan[] = useMemo(
     () =>
@@ -23,7 +24,7 @@ export const useAllPlans = () => {
         startDate: plan.startDate ? new Date(plan.startDate) : null,
         totalHours: plan.totalHours ?? null,
       })),
-    [planResults]
+    [planResults, currentDay]
   );
 
   return { plans };

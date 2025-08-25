@@ -171,59 +171,22 @@ const TodayPlanCard = ({
         // Get the Plan object
         const planObj = realm.objectForPrimaryKey('Plan', new Realm.BSON.ObjectId(id));
         if (planObj) {
-          // Parse frequency (should be an array of booleans for days of week)
-          let frequency: boolean[] = [];
-          try {
-            frequency = Array.isArray(planObj.frequency)
-              ? planObj.frequency
-              : JSON.parse(planObj.frequency as string);
-          } catch {
-            frequency = [false, false, false, false, false, false, false];
-          }
+          // Find the last time this plan was completed before today
+          const lastStatus = realm
+            .objects('PlanStatus')
+            .filtered(
+              'planId == $0 && status == "completed" && date < $1',
+              new Realm.BSON.ObjectId(id),
+              todayDate
+            )
+            .sorted('date', true)[0];
 
-          // Get the weekday for today (0=Monday, 6=Sunday)
-          let jsDay = todayDate.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
-          let todayWeekday = (jsDay + 6) % 7; // 0=Monday, 6=Sunday
-
-          // If today is not a scheduled day, streak does not increment
-          if (!frequency[todayWeekday]) {
-            planObj.streak = 0;
-          } else {
-            // Find the last time this plan was completed on any of the scheduled days (excluding today)
-            const lastStatus = realm
-              .objects('PlanStatus')
-              .filtered(
-                'planId == $0 && status == "completed" && date < $1',
-                new Realm.BSON.ObjectId(id),
-                todayDate
-              )
-              .sorted('date', true)
-              .find((status: any) => {
-                const d = status.date;
-                return frequency[d.getDay()];
-              });
-
-            if (lastStatus) {
-              const diffDays = Math.floor(
-                (todayDate.getTime() - lastStatus.date.getTime()) / (1000 * 60 * 60 * 24)
-              );
-              let prevScheduledDay = todayWeekday;
-              for (let i = 1; i <= 7; i++) {
-                const checkDay = (todayWeekday - i + 7) % 7;
-                if (frequency[checkDay]) {
-                  prevScheduledDay = checkDay;
-                  break;
-                }
-              }
-              let daysSincePrev = (todayWeekday - prevScheduledDay + 7) % 7 || 7;
-              if (diffDays === daysSincePrev) {
-                planObj.streak = (Number(planObj.streak) || 0) + 1;
-              } else {
-                planObj.streak = 1;
-              }
-            } else {
-              planObj.streak = 1;
+          if (lastStatus) {
+            if (lastStatus.date !== todayDate) {
+              planObj.streak = (Number(planObj.streak) || 0) + 1;
             }
+          } else {
+            planObj.streak = 1;
           }
         }
       });

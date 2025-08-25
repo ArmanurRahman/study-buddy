@@ -1,6 +1,6 @@
-import { useMemo, useRef, useEffect, useState } from 'react';
-import { View, Text, ScrollView, Dimensions, Animated, StyleSheet } from 'react-native';
-import { BarChart, PieChart, ProgressChart } from 'react-native-chart-kit';
+import { useMemo } from 'react';
+import { View, Text, ScrollView, Dimensions, StyleSheet } from 'react-native';
+import { BarChart, PieChart } from 'react-native-chart-kit';
 import { useQuery } from '@realm/react';
 
 import StudyCalendar from 'components/studyHoursByDate';
@@ -13,8 +13,8 @@ const ProgressScreen = () => {
   const planStatusResults = useQuery('PlanStatus');
   const planResults = useQuery('Plan');
 
-  // Compute bar, pie, and progress data using useMemo for performance
-  const { barData, pieData, progressData } = useMemo(() => {
+  // Compute bar and pie data using useMemo for performance
+  const { barData, pieData } = useMemo(() => {
     const statuses = planStatusResults.filtered('status == "completed"');
     const categoryTotals: Record<string, { completed: number; total: number; totalPlans: number }> =
       {};
@@ -44,7 +44,7 @@ const ProgressScreen = () => {
         } else if (plan.duration) {
           minutes = timeStringToHours(plan.duration as string);
         }
-        categoryTotals[plan.category].completed += minutes / 60;
+        categoryTotals[plan.category].completed += Number((minutes / 60).toFixed(2));
       }
     });
 
@@ -77,35 +77,6 @@ const ProgressScreen = () => {
 
     return { barData, pieData: pieDataArr, progressData };
   }, [planStatusResults, planResults]);
-
-  // --- Animation for ProgressChart ---
-  const [animatedProgress, setAnimatedProgress] = useState(progressData.data.map(() => 0));
-  const animatedValues = useRef(progressData.data.map(() => new Animated.Value(0))).current;
-
-  useEffect(() => {
-    animatedValues.forEach((anim, idx) => {
-      Animated.timing(anim, {
-        toValue: progressData.data[idx],
-        duration: 1200,
-        useNativeDriver: false,
-      }).start();
-    });
-    // Listen to value changes and update state for ProgressChart
-    const listeners = animatedValues.map((anim, idx) =>
-      anim.addListener(({ value }) => {
-        setAnimatedProgress((prev) => {
-          const next = [...prev];
-          next[idx] = value;
-          return next;
-        });
-      })
-    );
-    // Cleanup listeners on unmount
-    return () => {
-      listeners.forEach((listener, idx) => animatedValues[idx].removeListener(listener));
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progressData.data.join(',')]);
 
   return (
     <ScrollView
@@ -206,69 +177,6 @@ const ProgressScreen = () => {
                 </View>
               );
             })}
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Completion Progress</Text>
-        <View style={{ overflow: 'hidden' }}>
-          <ProgressChart
-            data={{
-              labels: progressData.labels,
-              data: animatedProgress,
-            }}
-            width={screenWidth - 46}
-            height={200}
-            strokeWidth={18}
-            radius={38}
-            chartConfig={{
-              backgroundColor: '#fff',
-              backgroundGradientFrom: '#fff',
-              backgroundGradientTo: '#fff',
-              color: (opacity = 1, index = 0) => PIE_COLORS[index % PIE_COLORS.length],
-              labelColor: (opacity = 1) => `rgba(55, 65, 81, ${opacity})`,
-            }}
-            hideLegend={true}
-            absolute
-            style={{
-              borderRadius: 16,
-              marginTop: 8,
-              marginBottom: 8,
-              transform: [{ translateX: -10 }],
-            }}
-          />
-          {/* Custom labels below the chart */}
-          <View
-            style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              marginTop: 12,
-            }}>
-            {progressData.labels.map((label, idx) => (
-              <View
-                key={label}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginHorizontal: 10,
-                  marginBottom: 6,
-                }}>
-                <View
-                  style={{
-                    width: 14,
-                    height: 14,
-                    borderRadius: 7,
-                    backgroundColor: PIE_COLORS[idx % PIE_COLORS.length],
-                    marginRight: 6,
-                  }}
-                />
-                <Text style={{ color: '#222', fontSize: 14 }}>
-                  {label} ({Math.round((animatedProgress[idx] || 0) * 100)}%)
-                </Text>
-              </View>
-            ))}
           </View>
         </View>
       </View>

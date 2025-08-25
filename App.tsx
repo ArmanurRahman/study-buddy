@@ -5,15 +5,18 @@ import { SafeAreaView } from 'react-native';
 import { realmSchemas } from './schema';
 import { Provider as PlanProvider } from './context/PlanContext';
 import './global.css';
+import { DayProvider } from 'context/DayContext';
 
 export default function App() {
   return (
     <RealmProvider schema={realmSchemas}>
-      <PlanProvider>
-        <SafeAreaView style={{ flex: 1 }}>
-          <AppNavigator />
-        </SafeAreaView>
-      </PlanProvider>
+      <DayProvider>
+        <PlanProvider>
+          <SafeAreaView style={{ flex: 1 }}>
+            <AppNavigator />
+          </SafeAreaView>
+        </PlanProvider>
+      </DayProvider>
     </RealmProvider>
   );
 }

@@ -23,7 +23,7 @@ const screenHeight = Dimensions.get('window').height;
 
 type RootStackParamList = {
   Home: undefined;
-  StudyNow: { task: TodaysPlan };
+  StudyNow: { plan: TodaysPlan };
 };
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
@@ -97,7 +97,7 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
                 <TouchableOpacity
                   key={plan.id}
                   activeOpacity={0.8}
-                  onPress={() => navigation.navigate('StudyNow', { task: plan })}>
+                  onPress={() => navigation.navigate('StudyNow', { plan })}>
                   <View
                     style={[
                       styles.planCard,

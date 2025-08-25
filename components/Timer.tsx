@@ -1,5 +1,14 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Modal, Animated, Easing, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  Animated,
+  Easing,
+  Platform,
+  Vibration,
+} from 'react-native';
 import { Svg, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
 type TimerModalProps = {
@@ -103,6 +112,8 @@ const TimerModal = ({
   // "1 minute left" warning animation (shake)
   useEffect(() => {
     if (running && currentSeconds <= 60 && currentSeconds > 0) {
+      // Vibrate when 1 minute left (only once)
+      Vibration.vibrate(500);
       Animated.loop(
         Animated.sequence([
           Animated.timing(warningAnim, {
@@ -126,7 +137,12 @@ const TimerModal = ({
       warningAnim.setValue(0);
     }
   }, [running, currentSeconds]);
-
+  // Vibrate when study finishes (timer reaches zero)
+  useEffect(() => {
+    if (running && currentSeconds === 0 && totalSeconds > 0) {
+      Vibration.vibrate([0, 400, 200, 400]);
+    }
+  }, [running, currentSeconds, totalSeconds]);
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View
