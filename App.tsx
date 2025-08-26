@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native';
 
 import { realmSchemas } from './schema';
 import { Provider as PlanProvider } from './context/PlanContext';
+import { Provider as StudyNowProvider } from './context/StudyNowContext';
 import './global.css';
 import { DayProvider } from 'context/DayContext';
 
@@ -12,9 +13,11 @@ export default function App() {
     <RealmProvider schema={realmSchemas}>
       <DayProvider>
         <PlanProvider>
-          <SafeAreaView style={{ flex: 1 }}>
-            <AppNavigator />
-          </SafeAreaView>
+          <StudyNowProvider>
+            <SafeAreaView style={{ flex: 1 }}>
+              <AppNavigator />
+            </SafeAreaView>
+          </StudyNowProvider>
         </PlanProvider>
       </DayProvider>
     </RealmProvider>

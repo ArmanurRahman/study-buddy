@@ -111,9 +111,15 @@ const TimerModal = ({
 
   // "1 minute left" warning animation (shake)
   useEffect(() => {
-    if (running && currentSeconds <= 60 && currentSeconds > 0) {
-      // Vibrate when 1 minute left (only once)
+    if (running && currentSeconds === 0 && totalSeconds > 0) {
+      // Vibrate when study finishes (timer reaches zero)
+      Vibration.vibrate([0, 400, 200, 400]);
+    }
+    if (running && currentSeconds === 60) {
+      // Vibrate when 1 minute left
       Vibration.vibrate(500);
+    }
+    if (running && currentSeconds <= 60 && currentSeconds > 0) {
       Animated.loop(
         Animated.sequence([
           Animated.timing(warningAnim, {

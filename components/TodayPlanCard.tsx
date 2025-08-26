@@ -11,7 +11,7 @@ import {
   getTotalSeconds,
   parseDuration,
   secondsToTimer,
-  timeObjectToMinutes,
+  timeStringToMinutes,
 } from '../utils/time';
 import CategoryIcon from './CategoryIcon';
 import Streak from './Streak';
@@ -164,7 +164,14 @@ const TodayPlanCard = ({
             date: todayDate,
             status: 'completed',
             updatedAt: new Date(),
-            passedTime: timeObjectToMinutes(timer),
+            passedTime: timeStringToMinutes(duration),
+            //   Math.round(
+            //     (initialHours * 3600 +
+            //       initialMinutes * 60 +
+            //       initialSeconds -
+            //       (timer.hours * 3600 + timer.minutes * 60 + timer.seconds)) /
+            //       60
+            //   ),
           });
         }
         // --- Streak Logic (considering frequency) ---

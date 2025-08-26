@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { View, ScrollView } from 'react-native';
 import { type RouteProp } from '@react-navigation/native';
 
@@ -8,6 +8,8 @@ import { useTodayPlan } from 'hooks/useTodayPlan';
 import { PlanStatusType } from 'types';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { durationToString } from 'utils/time';
+
+import { Context as StudyNowContext } from 'context/PlanContext';
 
 function isNoTaskRunning(taskStates: Record<string, PlanStatusType>) {
   return !Object.entries(taskStates).some(([id, status]) => status === 'running');
@@ -27,6 +29,13 @@ const StudyPlanScreen = ({ navigation }: StudyPlanScreenProps) => {
   const { todaysPlans } = useTodayPlan(new Date());
 
   // Update taskStates whenever todayPlans changes
+  const {
+    state: { studyStatus },
+    changeStudyNowStatus,
+  } = useContext(StudyNowContext) as {
+    state: { studyStatus: { [key: string]: { status: PlanStatusType } } };
+    changeStudyNowStatus: (planId: string, status: PlanStatusType) => void;
+  };
   const [taskStates, setTaskStates] = useState<Record<string, PlanStatusType>>({});
   useEffect(() => {
     setTaskStates(

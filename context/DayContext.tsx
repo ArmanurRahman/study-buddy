@@ -7,6 +7,22 @@ export const DayProvider: React.FC<React.PropsWithChildren<{}>> = ({ children })
   const [currentDay, setCurrentDay] = useState(new Date().toDateString());
   const realm = useRealm();
 
+  // Run this effect only once to set up the interval
+  useEffect(() => {
+    console.log('Checking for day change...');
+    const interval = setInterval(() => {
+      const today = new Date().toDateString();
+      setCurrentDay((prev) => {
+        if (prev !== today) {
+          console.log('Day changed:', today);
+          return today;
+        }
+        return prev;
+      });
+    }, 60 * 1000); // check every minute
+
+    return () => clearInterval(interval);
+  }, []);
   // Update streaks when the day changes, also checking frequency
   useEffect(() => {
     const plans = realm.objects('Plan');

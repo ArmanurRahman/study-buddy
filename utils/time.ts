@@ -79,6 +79,12 @@ export function timeStringToHours(duration: string): number {
   return hours + minutes / 60 + seconds / 3600;
 }
 
+// Convert a string like "1h 30m" or "45m" to total minutes
+export function timeStringToMinutes(duration: string): number {
+  const { hours, minutes, seconds } = parseDuration(duration);
+  return hours * 60 + minutes + seconds;
+}
+
 export const humanReadableDate = (dateStr?: string) => {
   if (!dateStr) return '';
   const date = new Date(dateStr);

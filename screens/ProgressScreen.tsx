@@ -44,7 +44,7 @@ const ProgressScreen = () => {
         } else if (plan.duration) {
           minutes = timeStringToHours(plan.duration as string);
         }
-        categoryTotals[plan.category].completed += Number((minutes / 60).toFixed(2));
+        categoryTotals[plan.category].completed += minutes / 60;
       }
     });
 
@@ -53,7 +53,7 @@ const ProgressScreen = () => {
       labels,
       datasets: [
         {
-          data: labels.map((cat) => categoryTotals[cat].completed),
+          data: labels.map((cat) => Number(categoryTotals[cat].completed.toFixed(2))),
         },
       ],
     };
