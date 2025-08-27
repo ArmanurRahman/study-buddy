@@ -1,21 +1,38 @@
-import React from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { durationToString, formatDuration } from 'utils/time';
+import { durationToString, formatDuration, parseDuration } from 'utils/time';
 import type { StackScreenProps } from '@react-navigation/stack';
+import { Context as StudyNowContext, StudyNowContextType } from 'context/StudyNowContext';
 
-import { TodaysPlan } from 'types';
+import { PlanStatusType, TodaysPlan } from 'types';
+import TimerModal from 'components/Timer';
 
 const screenWidth = Dimensions.get('window').width;
 
 type RootStackParamList = {
   StudyNow: { plan: TodaysPlan };
+  Home: undefined;
 };
 
-type Props = StackScreenProps<RootStackParamList, 'StudyNow'>;
+type StudyNowScreenProps = StackScreenProps<RootStackParamList, 'StudyNow'>;
 
-const StudyNowScreen: React.FC<Props> = ({ route, navigation }) => {
+const StudyNowScreen = ({ navigation, route }: StudyNowScreenProps) => {
   const plan = route?.params?.plan;
+
+  const {
+    state: { studyStatus, planStudy },
+    changeStudyNowStatus,
+  } = useContext(StudyNowContext) as {
+    state: StudyNowContextType;
+    changeStudyNowStatus: (planId: string, status: PlanStatusType) => void;
+  };
+
+  const { timer, startTimestamp, remainingSeconds, timerRunning } = planStudy[plan.id] || {};
+  const [timerVisible, setTimerVisible] = useState(false);
+  const initialHours = parseInt(plan.duration?.hours) || 0;
+  const initialMinutes = parseInt(plan.duration?.minutes) || 0;
+  const initialSeconds = 0;
 
   return (
     <View style={styles.container}>

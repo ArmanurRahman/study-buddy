@@ -5,11 +5,11 @@ import { type RouteProp } from '@react-navigation/native';
 import TodayTaskCard from '../components/TodayPlanCard';
 import { useTodayPlan } from 'hooks/useTodayPlan';
 
-import { PlanStatusType } from 'types';
+import { PlanStatusType, TodaysPlan } from 'types';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { durationToString } from 'utils/time';
 
-import { Context as StudyNowContext } from 'context/PlanContext';
+import { Context as StudyNowContext } from 'context/StudyNowContext';
 
 function isNoTaskRunning(taskStates: Record<string, PlanStatusType>) {
   return !Object.entries(taskStates).some(([id, status]) => status === 'running');
@@ -32,40 +32,44 @@ const StudyPlanScreen = ({ navigation }: StudyPlanScreenProps) => {
   const {
     state: { studyStatus },
     changeStudyNowStatus,
+    initiateStudyNowStatus,
   } = useContext(StudyNowContext) as {
-    state: { studyStatus: { [key: string]: { status: PlanStatusType } } };
+    state: { studyStatus: Record<string, PlanStatusType> };
     changeStudyNowStatus: (planId: string, status: PlanStatusType) => void;
+    initiateStudyNowStatus: (todaysPlans: TodaysPlan[]) => void;
   };
-  const [taskStates, setTaskStates] = useState<Record<string, PlanStatusType>>({});
+
+  // const [taskStates, setTaskStates] = useState<Record<string, PlanStatusType>>({});
   useEffect(() => {
-    setTaskStates(
-      todaysPlans.reduce(
-        (acc, task) => {
-          task.status === 'completed' ? (acc[task.id] = 'completed') : (acc[task.id] = 'idle');
-          return acc;
-        },
-        {} as Record<string, PlanStatusType>
-      )
-    );
+    initiateStudyNowStatus(todaysPlans);
+    // setTaskStates(
+    //   todaysPlans.reduce(
+    //     (acc, task) => {
+    //       task.status === 'completed' ? (acc[task.id] = 'completed') : (acc[task.id] = 'idle');
+    //       return acc;
+    //     },
+    //     {} as Record<string, PlanStatusType>
+    //   )
+    // );
   }, [todaysPlans]);
 
   const setStatus = (id: string, status: PlanStatusType) => {
-    setTaskStates((prev) => ({ ...prev, [id]: status }));
+    changeStudyNowStatus(id, status);
+    // setTaskStates((prev) => ({ ...prev, [id]: status }));
   };
-
   return (
     <ScrollView>
       <View className="flex-1 items-center justify-center bg-gray-50 p-4">
         {todaysPlans.map((plan) => (
           <TodayTaskCard
-            status={taskStates[plan.id]}
+            status={studyStatus[plan.id]}
             setStatus={setStatus}
             key={plan.id}
             id={plan.id}
             title={plan.title}
             description={plan.description}
             duration={durationToString(plan.duration)}
-            isNoTaskRunning={isNoTaskRunning(taskStates)}
+            isNoTaskRunning={isNoTaskRunning(studyStatus)}
             category={plan.category}
             streak={plan.streak}
           />
