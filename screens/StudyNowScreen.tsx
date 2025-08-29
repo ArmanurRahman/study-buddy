@@ -1,18 +1,18 @@
-import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { durationToString, formatDuration, parseDuration } from 'utils/time';
+import { durationToString, formatDuration } from 'utils/time';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { Context as StudyNowContext, StudyNowContextType } from 'context/StudyNowContext';
 
-import { PlanStatusType, TodaysPlan } from 'types';
-import TimerModal from 'components/Timer';
+import { TodaysPlan } from 'types';
+import { useContext } from 'react';
+import { getIconAndColor } from 'utils/ui';
 
 const screenWidth = Dimensions.get('window').width;
 
 type RootStackParamList = {
   StudyNow: { plan: TodaysPlan };
-  Home: undefined;
+  Study: undefined;
 };
 
 type StudyNowScreenProps = StackScreenProps<RootStackParamList, 'StudyNow'>;
@@ -21,18 +21,11 @@ const StudyNowScreen = ({ navigation, route }: StudyNowScreenProps) => {
   const plan = route?.params?.plan;
 
   const {
-    state: { studyStatus, planStudy },
-    changeStudyNowStatus,
-  } = useContext(StudyNowContext) as {
-    state: StudyNowContextType;
-    changeStudyNowStatus: (planId: string, status: PlanStatusType) => void;
-  };
+    state: { studyStatus },
+  } = useContext(StudyNowContext) as { state: StudyNowContextType };
+  const status = plan ? studyStatus[plan.id] : 'idle';
 
-  const { timer, startTimestamp, remainingSeconds, timerRunning } = planStudy[plan.id] || {};
-  const [timerVisible, setTimerVisible] = useState(false);
-  const initialHours = parseInt(plan.duration?.hours) || 0;
-  const initialMinutes = parseInt(plan.duration?.minutes) || 0;
-  const initialSeconds = 0;
+  const { statusText, statusColor, icon } = getIconAndColor(status);
 
   return (
     <View style={styles.container}>
@@ -61,6 +54,7 @@ const StudyNowScreen = ({ navigation, route }: StudyNowScreenProps) => {
           <Ionicons name="book-outline" size={22} color="#2563eb" style={{ marginRight: 8 }} />
           <Text style={styles.planTitle}>{plan?.title || 'Your Study Plan'}</Text>
         </View>
+
         {plan?.description ? <Text style={styles.planDescription}>{plan.description}</Text> : null}
         <View style={styles.infoRow}>
           <View style={styles.infoBadge}>
@@ -77,27 +71,21 @@ const StudyNowScreen = ({ navigation, route }: StudyNowScreenProps) => {
               {plan?.streak || 0} day streak
             </Text>
           </View>
+          {/* Status Field */}
+          <View style={styles.infoBadge}>
+            <Ionicons name={icon} size={18} color={statusColor} style={{ marginRight: 6 }} />
+            <Text style={{ color: statusColor, fontWeight: 'bold', fontSize: 15 }}>
+              {statusText}
+            </Text>
+          </View>
         </View>
-        {plan.status === 'completed' && (
-          <Text
-            style={{
-              marginTop: 18,
-              textAlign: 'center',
-              fontWeight: 'bold',
-              color: '#10b981',
-              fontSize: 17,
-              letterSpacing: 0.5,
-            }}>
-            🎉 Study Completed!
-          </Text>
-        )}
       </View>
 
-      {/* Start Button */}
+      {/* Start/Resume Button */}
       {plan.status !== 'completed' && (
-        <TouchableOpacity style={styles.startBtn}>
-          <Ionicons name="play" size={22} color="#fff" style={{ marginRight: 6 }} />
-          <Text style={styles.startBtnText}>Start Studying</Text>
+        <TouchableOpacity style={styles.startBtn} onPress={() => navigation.navigate('Study')}>
+          <Ionicons name="book-outline" size={22} color="#fff" style={{ marginRight: 6 }} />
+          <Text style={styles.startBtnText}>Go To Study</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -168,7 +156,9 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: 'row',
     marginTop: 8,
-    gap: 10,
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 6,
   },
   infoBadge: {
     flexDirection: 'row',
@@ -177,7 +167,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    marginRight: 10,
   },
   infoText: {
     fontWeight: '600',
@@ -197,6 +186,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.13,
     shadowRadius: 8,
     elevation: 4,
+    gap: 8,
   },
   startBtnText: {
     color: '#fff',

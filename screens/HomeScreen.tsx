@@ -16,7 +16,10 @@ import { durationToString, formatDuration } from '../utils/time';
 import { TodaysPlan } from 'types';
 import { useWeeklyStudyData } from 'hooks/useWeeklyStudyData';
 import { Ionicons } from '@expo/vector-icons';
-import { useRef } from 'react';
+import { useContext, useRef } from 'react';
+import { Context as StudyNowContext, StudyNowContextType } from 'context/StudyNowContext';
+import { getIconAndColor } from 'utils/ui';
+import { useAllPlans } from 'hooks/useAllPlans';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -29,7 +32,12 @@ type RootStackParamList = {
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
 const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) => {
+  const {
+    state: { studyStatus },
+  } = useContext(StudyNowContext) as { state: StudyNowContextType };
+
   const { todaysPlans } = useTodayPlan(new Date());
+  const { plans } = useAllPlans();
   const data = useWeeklyStudyData();
   const studyData = {
     labels: WEEK_DAYS,
@@ -45,7 +53,6 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
     outputRange: [0, -130],
     extrapolate: 'clamp',
   });
-
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       {/* Header */}
@@ -108,21 +115,9 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
                     ]}>
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <Ionicons
-                        name={
-                          plan.status === 'completed'
-                            ? 'checkmark-circle'
-                            : plan.status === 'running'
-                              ? 'play-circle'
-                              : 'ellipse-outline'
-                        }
+                        name={getIconAndColor(studyStatus[plan.id]).icon}
                         size={20}
-                        color={
-                          plan.status === 'completed'
-                            ? '#10b981'
-                            : plan.status === 'running'
-                              ? '#2563eb'
-                              : '#94a3b8'
-                        }
+                        color={getIconAndColor(studyStatus[plan.id]).statusColor}
                       />
                       <Text
                         style={[
@@ -196,13 +191,13 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
             <Ionicons name="flame-outline" size={22} color="#2563eb" style={{ marginRight: 8 }} />
             <Text style={styles.sectionTitle}>Current Streak</Text>
           </View>
-          {todaysPlans.length === 0 ? (
+          {plans.length === 0 ? (
             <Text style={styles.emptyText}>
               No streaks yet. Start studying to build your streak!
             </Text>
           ) : (
             <View>
-              {todaysPlans.map((plan) => (
+              {plans.map((plan) => (
                 <View key={plan.id} style={styles.streakRow}>
                   <Text style={styles.streakPlanTitle}>{plan.title}</Text>
                   <Streak streak={plan.streak || 0} />

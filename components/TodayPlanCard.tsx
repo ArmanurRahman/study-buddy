@@ -1,8 +1,9 @@
 import { useRef, useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, AppState, AppStateStatus } from 'react-native';
+import { View, Text, TouchableOpacity, AppState, AppStateStatus, Vibration } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useRealm } from '@realm/react';
+import * as Notifications from 'expo-notifications';
 
 import TimerModal from './Timer';
 import { PlanStatusType } from '../types';
@@ -145,7 +146,7 @@ const TodayPlanCard = ({
   // Complete the task
   const completeTask = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-
+    Vibration.vibrate([0, 400, 200, 400]);
     try {
       const today = new Date();
       const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -191,14 +192,28 @@ const TodayPlanCard = ({
           if (lastStatus) {
             if (lastStatus.date !== todayDate) {
               planObj.streak = (Number(planObj.streak) || 0) + 1;
+              planObj.lastStreakUpdate = todayDate.toDateString();
             }
           } else {
             planObj.streak = 1;
+            planObj.lastStreakUpdate = todayDate.toDateString();
           }
         }
       });
       setStatus(id, 'completed');
       setTimerVisible(false);
+
+      // Send notification if app is in background or inactive
+      if (appState.current === 'background' || appState.current === 'inactive') {
+        Notifications.scheduleNotificationAsync({
+          content: {
+            title: '🎉 Study Complete!',
+            body: `You have completed "${title}". Great job!`,
+            sound: true,
+          },
+          trigger: null,
+        });
+      }
       navigation.navigate('StudyComplete');
     } catch (e) {
       console.error('Error saving task status:', e);
@@ -413,6 +428,7 @@ const TodayPlanCard = ({
         resumeTimer={resumeTimer}
         pauseTimer={pauseTimer}
         intervalRef={intervalRef}
+        title={title}
       />
     </>
   );

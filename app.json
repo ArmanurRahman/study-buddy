@@ -25,7 +25,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.my-expo-app",
+      "bundleIdentifier": "com.skyblue.studyplanner",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -35,13 +35,14 @@
         "foregroundImage": "./assets/study-planner-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.myexpoapp",
+      "package": "com.skyblue.studyplanner",
       "label": "Study Planner"
     },
     "extra": {
       "eas": {
         "projectId": "50c9c202-6df2-4de2-b30a-881287c624fe"
       }
-    }
+    },
+    "owner": "mubeenarman034"
   }
 }

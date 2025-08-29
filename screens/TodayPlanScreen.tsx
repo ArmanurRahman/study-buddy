@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useEffect, useContext } from 'react';
 import { View, ScrollView } from 'react-native';
 import { type RouteProp } from '@react-navigation/native';
 
@@ -39,18 +39,8 @@ const StudyPlanScreen = ({ navigation }: StudyPlanScreenProps) => {
     initiateStudyNowStatus: (todaysPlans: TodaysPlan[]) => void;
   };
 
-  // const [taskStates, setTaskStates] = useState<Record<string, PlanStatusType>>({});
   useEffect(() => {
     initiateStudyNowStatus(todaysPlans);
-    // setTaskStates(
-    //   todaysPlans.reduce(
-    //     (acc, task) => {
-    //       task.status === 'completed' ? (acc[task.id] = 'completed') : (acc[task.id] = 'idle');
-    //       return acc;
-    //     },
-    //     {} as Record<string, PlanStatusType>
-    //   )
-    // );
   }, [todaysPlans]);
 
   const setStatus = (id: string, status: PlanStatusType) => {

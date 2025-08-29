@@ -15,6 +15,8 @@ const PlanSchema = {
     sendNotification: 'bool?',
     startTime: 'date?',
     totalHours: 'int?',
+    lastStreakUpdate: { type: 'string', default: '' },
+    isEnd: { type: 'bool', default: false },
   },
   primaryKey: '_id',
 };

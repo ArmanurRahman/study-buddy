@@ -3,7 +3,6 @@ import createDataContext from './createDataContext';
 
 const defaultState = {
   studyStatus: {},
-  planStudy: {},
 };
 
 interface PlanStudyState {
@@ -100,23 +99,23 @@ const studyNowReducer = (state: StudyNowContextType, action: Action): StudyNowCo
         },
         {} as Record<string, PlanStatusType>
       );
-      // Also initialize planStudy for each plan
-      const newPlanStudy = { ...state.planStudy };
-      todaysPlans.forEach((plan) => {
-        if (!newPlanStudy[plan.id]) {
-          newPlanStudy[plan.id] = {
-            timer: { hours: 0, minutes: 0, seconds: 0 },
-            startTimestamp: null,
-            remainingSeconds:
-              parseInt(plan.duration.hours) * 3600 + parseInt(plan.duration.minutes) * 60 + 0,
-            timerRunning: false,
-          };
-        }
-      });
+      //   // Also initialize planStudy for each plan
+      //   const newPlanStudy = { ...state.planStudy };
+      //   todaysPlans.forEach((plan) => {
+      //     if (!newPlanStudy[plan.id]) {
+      //       newPlanStudy[plan.id] = {
+      //         timer: { hours: 0, minutes: 0, seconds: 0 },
+      //         startTimestamp: null,
+      //         remainingSeconds:
+      //           parseInt(plan.duration.hours) * 3600 + parseInt(plan.duration.minutes) * 60 + 0,
+      //         timerRunning: false,
+      //       };
+      //     }
+      //   });
       return {
         ...state,
         studyStatus: newStudyStatus,
-        planStudy: newPlanStudy,
+        // planStudy: newPlanStudy,
       };
     case 'CHANGE_TIMER':
       return {
