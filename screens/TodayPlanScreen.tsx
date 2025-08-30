@@ -16,8 +16,8 @@ function isNoTaskRunning(taskStates: Record<string, PlanStatusType>) {
 }
 
 type RootStackParamList = {
-  StudyMain?: {};
-  StudyNow?: { planId: string };
+  StudyMain?: { planId?: string; autoStart?: boolean; action?: string };
+  StudyNow?: { planId: string; autoStart: boolean; action: string };
 };
 
 type StudyPlanScreenProps = {
@@ -25,8 +25,9 @@ type StudyPlanScreenProps = {
   route: RouteProp<RootStackParamList, 'StudyMain'>;
 };
 
-const StudyPlanScreen = ({ navigation }: StudyPlanScreenProps) => {
+const StudyPlanScreen = ({ navigation, route }: StudyPlanScreenProps) => {
   const { todaysPlans } = useTodayPlan(new Date());
+  const { planId, autoStart, action } = route.params ?? {};
 
   // Update taskStates whenever todayPlans changes
   const {
@@ -45,7 +46,6 @@ const StudyPlanScreen = ({ navigation }: StudyPlanScreenProps) => {
 
   const setStatus = (id: string, status: PlanStatusType) => {
     changeStudyNowStatus(id, status);
-    // setTaskStates((prev) => ({ ...prev, [id]: status }));
   };
   return (
     <ScrollView>
@@ -62,6 +62,8 @@ const StudyPlanScreen = ({ navigation }: StudyPlanScreenProps) => {
             isNoTaskRunning={isNoTaskRunning(studyStatus)}
             category={plan.category}
             streak={plan.streak}
+            autoStart={plan.id === planId ? autoStart : false}
+            action={action}
           />
         ))}
       </View>

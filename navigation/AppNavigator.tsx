@@ -182,10 +182,11 @@ const AppNavigator = () => {
           name="Study"
           component={TodayStack}
           options={{ headerShown: false }}
-          listeners={({ navigation }) => ({
+          listeners={({ navigation, route }) => ({
             tabPress: (e) => {
               e.preventDefault();
-              navigation.navigate('Study', { screen: 'StudyMain' });
+              const params = route.params?.params || route.params;
+              navigation.navigate('Study', { screen: 'StudyMain', params });
             },
           })}
         />

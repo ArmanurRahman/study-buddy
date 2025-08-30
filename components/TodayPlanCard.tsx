@@ -1,7 +1,7 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, AppState, AppStateStatus, Vibration } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation, NavigationProp, useFocusEffect } from '@react-navigation/native';
 import { useRealm } from '@realm/react';
 import * as Notifications from 'expo-notifications';
 
@@ -28,6 +28,8 @@ type TodayPlanCardProps = {
   setStatus: (id: string, status: PlanStatusType) => void;
   isNoTaskRunning: boolean;
   category: string;
+  autoStart?: boolean;
+  action?: string;
 };
 
 const TodayPlanCard = ({
@@ -40,6 +42,8 @@ const TodayPlanCard = ({
   setStatus,
   isNoTaskRunning,
   category,
+  autoStart,
+  action,
 }: TodayPlanCardProps) => {
   const navigation = useNavigation<NavigationProp<any>>();
   const realm = useRealm();
@@ -69,6 +73,24 @@ const TodayPlanCard = ({
     setTimer({ hours, minutes, seconds });
     setRemainingSeconds(hours * 3600 + minutes * 60 + seconds);
   }, [duration]);
+
+  // Automatically start timer if autoStart is true and status is not running/completed
+  useFocusEffect(
+    useCallback(() => {
+      if (autoStart && action === 'start') {
+        setTimerVisible(true);
+        startTimer();
+      }
+      if (autoStart && action === 'pause') {
+        setTimerVisible(true);
+        pauseTimer();
+      }
+      if (autoStart && action === 'resume') {
+        setTimerVisible(true);
+        resumeTimer();
+      }
+    }, [autoStart, action])
+  );
 
   // Start timer
   const startTimer = () => {
