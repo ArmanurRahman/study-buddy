@@ -10,7 +10,6 @@ import {
   Vibration,
 } from 'react-native';
 import { Svg, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
-import * as Notifications from 'expo-notifications';
 
 type TimerModalProps = {
   title: string;
@@ -121,14 +120,14 @@ const TimerModal = ({
       // Vibrate when 1 minute left
       Vibration.vibrate(500);
       // Send a local notification when 1 minute left
-      Notifications.scheduleNotificationAsync({
-        content: {
-          title: '⏰ 1 Minute Left!',
-          body: `Only 1 minute remaining in your study session: ${title}`,
-          sound: true,
-        },
-        trigger: null, // Send immediately
-      });
+      // Notifications.scheduleNotificationAsync({
+      //   content: {
+      //     title: '⏰ 1 Minute Left!',
+      //     body: `Only 1 minute remaining in your study session: ${title}`,
+      //     sound: true,
+      //   },
+      //   trigger: null, // Send immediately
+      // });
     }
     if (running && currentSeconds <= 60 && currentSeconds > 0) {
       Animated.loop(

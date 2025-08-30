@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { BarChart } from 'react-native-chart-kit';
 import { Dimensions, PanResponder, Text, View, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -38,7 +38,10 @@ const WeeklyStudyBar = () => {
     ]).start();
     setTimeout(cb, 180); // Change weekOffset at the midpoint of the animation
   };
-
+  const weekOffsetRef = useRef(weekOffset);
+  useEffect(() => {
+    weekOffsetRef.current = weekOffset;
+  }, [weekOffset]);
   // PanResponder for swipe gestures
   const panResponder = useRef(
     PanResponder.create({
@@ -50,7 +53,10 @@ const WeeklyStudyBar = () => {
           animateSlide('left', () => setWeekOffset((prev) => prev - 1));
         } else if (gestureState.dx > 30) {
           // Swiped right: show next week (but not beyond current week)
-          animateSlide('right', () => setWeekOffset((prev) => Math.min(prev + 1, 0)));
+          if (weekOffsetRef.current < 0) {
+            animateSlide('right', () => setWeekOffset((prev) => Math.min(prev + 1, 0)));
+          }
+          // else: do nothing, no animation for future week
         }
       },
     })

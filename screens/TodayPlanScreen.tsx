@@ -16,8 +16,8 @@ function isNoTaskRunning(taskStates: Record<string, PlanStatusType>) {
 }
 
 type RootStackParamList = {
-  StudyMain?: { planId?: string; autoStart?: boolean; action?: string };
-  StudyNow?: { planId: string; autoStart: boolean; action: string };
+  StudyMain?: { planId?: string; showTimer?: boolean; action?: string };
+  StudyNow?: { planId: string; showTimer: boolean; action: string };
 };
 
 type StudyPlanScreenProps = {
@@ -27,7 +27,7 @@ type StudyPlanScreenProps = {
 
 const StudyPlanScreen = ({ navigation, route }: StudyPlanScreenProps) => {
   const { todaysPlans } = useTodayPlan(new Date());
-  const { planId, autoStart, action } = route.params ?? {};
+  const { planId, showTimer, action } = route.params ?? {};
 
   // Update taskStates whenever todayPlans changes
   const {
@@ -62,7 +62,7 @@ const StudyPlanScreen = ({ navigation, route }: StudyPlanScreenProps) => {
             isNoTaskRunning={isNoTaskRunning(studyStatus)}
             category={plan.category}
             streak={plan.streak}
-            autoStart={plan.id === planId ? autoStart : false}
+            autoStart={plan.id === planId ? showTimer : false}
             action={action}
           />
         ))}

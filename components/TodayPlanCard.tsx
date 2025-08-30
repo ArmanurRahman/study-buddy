@@ -66,6 +66,7 @@ const TodayPlanCard = ({
   const appState = useRef(AppState.currentState);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const notificationIdRef = useRef<string | null>(null);
 
   // Update timer state if duration prop changes
   useEffect(() => {
@@ -77,21 +78,31 @@ const TodayPlanCard = ({
   // Automatically start timer if autoStart is true and status is not running/completed
   useFocusEffect(
     useCallback(() => {
-      if (autoStart && action === 'start') {
+      if (autoStart && action === 'view') {
         setTimerVisible(true);
-        startTimer();
-      }
-      if (autoStart && action === 'pause') {
-        setTimerVisible(true);
-        pauseTimer();
-      }
-      if (autoStart && action === 'resume') {
-        setTimerVisible(true);
-        resumeTimer();
       }
     }, [autoStart, action])
   );
 
+  const scheduleNotification = (seconds: number) => {
+    Notifications.cancelScheduledNotificationAsync(notificationIdRef.current || ''); // Cancel previous if any
+    Notifications.scheduleNotificationAsync({
+      content: {
+        title: '🎉 Study Complete!',
+        body: `You have completed "${title}". Great job!`,
+        sound: true,
+      },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds },
+    }).then((id) => {
+      notificationIdRef.current = id;
+    });
+  };
+  const cancelNotification = () => {
+    if (notificationIdRef.current) {
+      Notifications.cancelScheduledNotificationAsync(notificationIdRef.current);
+      notificationIdRef.current = null;
+    }
+  };
   // Start timer
   const startTimer = () => {
     if (status === 'running') return;
@@ -99,12 +110,14 @@ const TodayPlanCard = ({
     setTimerRunning(true);
     setStartTimestamp(Date.now());
     setRemainingSeconds(getTotalSeconds(timer));
+    scheduleNotification(getTotalSeconds(timer));
   };
 
   // Pause timer
   const pauseTimer = () => {
     setStatus(id, 'paused');
     setTimerRunning(false);
+    cancelNotification();
     if (startTimestamp) {
       const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
       setRemainingSeconds((prev) => Math.max(prev - elapsed, 0));
@@ -117,6 +130,7 @@ const TodayPlanCard = ({
     setStatus(id, 'running');
     setTimerRunning(true);
     setStartTimestamp(Date.now());
+    scheduleNotification(remainingSeconds);
   };
 
   // Effect to handle ticking
@@ -226,16 +240,18 @@ const TodayPlanCard = ({
       setTimerVisible(false);
 
       // Send notification if app is in background or inactive
-      if (appState.current === 'background' || appState.current === 'inactive') {
-        Notifications.scheduleNotificationAsync({
-          content: {
-            title: '🎉 Study Complete!',
-            body: `You have completed "${title}". Great job!`,
-            sound: true,
-          },
-          trigger: null,
-        });
-      }
+      // if (appState.current === 'background' || appState.current === 'inactive') {
+
+      // }
+      // Notifications.scheduleNotificationAsync({
+      //   content: {
+      //     title: '🎉 Study Complete!',
+      //     body: `You have completed "${title}". Great job!`,
+      //     sound: true,
+      //   },
+      //   trigger: null,
+      // });
+      cancelNotification();
       navigation.navigate('StudyComplete');
     } catch (e) {
       console.error('Error saving task status:', e);
@@ -243,9 +259,15 @@ const TodayPlanCard = ({
   };
 
   const resetTimer = () => {
-    pauseTimer();
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setTimerRunning(false);
     setStatus(id, 'idle');
     setTimer({ hours: initialHours, minutes: initialMinutes, seconds: initialSeconds });
+    setRemainingSeconds(initialHours * 3600 + initialMinutes * 60 + initialSeconds);
+    cancelNotification();
   };
 
   return (

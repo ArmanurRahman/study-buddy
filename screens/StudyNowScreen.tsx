@@ -12,7 +12,7 @@ const screenWidth = Dimensions.get('window').width;
 
 type RootStackParamList = {
   StudyNow: { plan: TodaysPlan };
-  Study: { screen: string; params: { planId?: string; autoStart?: boolean; action?: string } };
+  Study: { screen: string; params: { planId?: string; showTimer?: boolean; action?: string } };
 };
 
 type StudyNowScreenProps = StackScreenProps<RootStackParamList, 'StudyNow'>;
@@ -84,39 +84,22 @@ const StudyNowScreen = ({ navigation, route }: StudyNowScreenProps) => {
         </View>
       </View>
 
-      {/* Start/Resume Button */}
-      {plan.status !== 'completed' && isOtherPlanRunning && (
-        <TouchableOpacity
-          style={styles.startBtn}
-          onPress={() =>
-            navigation.navigate('Study', {
-              screen: 'StudyMain',
-              params: { planId: plan.id },
-            })
-          }>
-          <Ionicons name="book-outline" size={22} color="#fff" style={{ marginRight: 6 }} />
-          <Text style={styles.startBtnText}>{"Go To Todays's Study"}</Text>
-        </TouchableOpacity>
-      )}
-      {plan.status !== 'completed' && !isOtherPlanRunning && (
+      {plan.status !== 'completed' && (
         <TouchableOpacity
           style={styles.startBtn}
           onPress={() => {
-            let action = 'start';
-            if (status === 'paused') action = 'resume';
-            else if (status === 'running') action = 'pause';
             navigation.navigate('Study', {
               screen: 'StudyMain',
-              params: { planId: plan.id, autoStart: true, action },
+              params: {
+                planId: plan.id,
+                showTimer: !isOtherPlanRunning,
+                action: isOtherPlanRunning ? '' : 'view',
+              },
             });
           }}>
           <Ionicons name="book-outline" size={22} color="#fff" style={{ marginRight: 6 }} />
           <Text style={styles.startBtnText}>
-            {status === 'paused'
-              ? 'Resume Studying'
-              : status === 'running'
-                ? 'Pause Studying'
-                : 'Start Studying'}
+            {isOtherPlanRunning ? "Go To Todays's Study" : 'Go to Study'}
           </Text>
         </TouchableOpacity>
       )}
