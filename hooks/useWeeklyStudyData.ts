@@ -1,20 +1,23 @@
 import { useQuery } from '@realm/react';
 
-// Returns an array of 7 numbers (hours per day, Mon–Sun)
-export function useWeeklyStudyData(): number[] {
+// Returns an array of 7 numbers (minutes per day, Mon–Sun)
+export function useWeeklyStudyData(weekOffset: number = 0): number[] {
   const planStatusResults = useQuery('PlanStatus');
 
-  // Get start and end of current week (Monday to Sunday)
+  // Get start and end of the target week (Monday to Sunday)
   const now = new Date();
   const day = (now.getDay() + 6) % 7; // 0=Monday, 6=Sunday
+
+  // Move to the Monday of the target week
   const monday = new Date(now);
-  monday.setDate(now.getDate() - day);
+  monday.setDate(now.getDate() - day + weekOffset * 7);
   monday.setHours(0, 0, 0, 0);
+
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
   sunday.setHours(23, 59, 59, 999);
 
-  // Prepare a map: { [weekday: number]: totalHours }
+  // Prepare a map: { [weekday: number]: totalMinutes }
   const dailyTotals: number[] = [0, 0, 0, 0, 0, 0, 0]; // Mon–Sun
 
   planStatusResults

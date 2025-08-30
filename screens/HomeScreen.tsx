@@ -1,28 +1,15 @@
-import {
-  Text,
-  TouchableOpacity,
-  View,
-  Dimensions,
-  Image,
-  StyleSheet,
-  Animated,
-} from 'react-native';
-import { BarChart } from 'react-native-chart-kit';
+import { Text, TouchableOpacity, View, Image, StyleSheet, Animated } from 'react-native';
 import { useTodayPlan } from 'hooks/useTodayPlan';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import Streak from '../components/Streak';
-import { WEEK_DAYS } from '../utils/enum';
 import { durationToString, formatDuration } from '../utils/time';
 import { TodaysPlan } from 'types';
-import { useWeeklyStudyData } from 'hooks/useWeeklyStudyData';
 import { Ionicons } from '@expo/vector-icons';
 import { useContext, useRef } from 'react';
 import { Context as StudyNowContext, StudyNowContextType } from 'context/StudyNowContext';
 import { getIconAndColor } from 'utils/ui';
 import { useAllPlans } from 'hooks/useAllPlans';
-
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
+import WeeklyStudyBar from 'components/WeeklyStudyBar';
 
 type RootStackParamList = {
   Home: undefined;
@@ -38,11 +25,6 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
 
   const { todaysPlans } = useTodayPlan(new Date());
   const { plans } = useAllPlans();
-  const data = useWeeklyStudyData();
-  const studyData = {
-    labels: WEEK_DAYS,
-    datasets: [{ data }],
-  };
 
   // Animated value for scroll
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -139,51 +121,7 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
         </View>
 
         {/* Time studied this week (Bar Chart) */}
-        <View style={styles.sectionCard}>
-          <View style={styles.sectionHeader}>
-            <Ionicons
-              name="bar-chart-outline"
-              size={22}
-              color="#2563eb"
-              style={{ marginRight: 8 }}
-            />
-            <Text style={styles.sectionTitle}>Time Studied This Week</Text>
-          </View>
-          <View style={{ overflow: 'hidden' }}>
-            <BarChart
-              data={studyData}
-              width={screenWidth - 46}
-              height={screenHeight * 0.25}
-              yAxisSuffix="m"
-              yAxisLabel=""
-              yLabelsOffset={0}
-              segments={
-                Math.max(...(studyData.datasets[0]?.data || [0])) <= 0
-                  ? 1
-                  : Math.min(
-                      4,
-                      Math.max(2, Math.ceil(Math.max(...(studyData.datasets[0]?.data || [0])) / 2))
-                    )
-              }
-              chartConfig={{
-                backgroundColor: '#fff',
-                backgroundGradientFrom: '#fff',
-                backgroundGradientTo: '#fff',
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(37, 99, 235, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(55, 65, 81, ${opacity})`,
-                propsForDots: { r: '6', strokeWidth: '2', stroke: '#2563eb' },
-              }}
-              style={{
-                marginRight: -50,
-                marginTop: 8,
-                transform: [{ translateX: -30 }],
-              }}
-              fromZero
-              showValuesOnTopOfBars
-            />
-          </View>
-        </View>
+        <WeeklyStudyBar />
 
         {/* Current streak */}
         <View style={styles.sectionCard}>
@@ -196,7 +134,7 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
               No streaks yet. Start studying to build your streak!
             </Text>
           ) : (
-            <View>
+            <View style={{ gap: 10 }}>
               {plans.map((plan) => (
                 <View key={plan.id} style={styles.streakRow}>
                   <Text style={styles.streakPlanTitle}>{plan.title}</Text>
