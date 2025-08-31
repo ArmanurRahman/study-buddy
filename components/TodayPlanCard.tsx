@@ -181,7 +181,11 @@ const TodayPlanCard = ({
 
   // Complete the task
   const completeTask = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setTimerRunning(false);
     Vibration.vibrate([0, 400, 200, 400]);
     try {
       const today = new Date();

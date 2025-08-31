@@ -190,7 +190,14 @@ const AppNavigator = () => {
           })}
         />
         <Tab.Screen name="Plans" component={CreatePlanStack} options={{ headerShown: false }} />
-        <Tab.Screen name="Progress" component={ProgressScreen} />
+        <Tab.Screen
+          name="Progress"
+          component={ProgressScreen}
+          options={{
+            headerShown: false,
+            title: 'Progress',
+          }}
+        />
       </Tab.Navigator>
     </NavigationContainer>
   );
