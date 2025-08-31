@@ -32,7 +32,7 @@ export interface Plan {
   isEnd?: boolean;
 }
 
-export interface TaskStatus {
+export interface PlanStatus {
   id: string;
   taskId: string; // Reference to Task._id
   date: Date;
