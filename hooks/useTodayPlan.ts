@@ -16,6 +16,7 @@ export function useTodayPlan(today: Date) {
 
     return planResults
       .filter((plan: any) => {
+        if (plan.isEnd) return false;
         if (!plan.startDate) return false;
         const start = plan.startDate instanceof Date ? plan.startDate : new Date(plan.startDate);
         if (!plan.endDate) {

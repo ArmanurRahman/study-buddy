@@ -1,5 +1,5 @@
 import { useContext, useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, StyleSheet, Switch } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { Ionicons } from '@expo/vector-icons';
 import LinearGradient from 'react-native-linear-gradient';
@@ -27,13 +27,14 @@ type TasksScreenProps = {
 
 const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
   const [addTaskModalVisible, setAddTaskModalVisible] = useState(false);
+  const [showEndedPlans, setShowEndedPlans] = useState(false);
 
   const { changePlan, resetPlan } = useContext(PlanContext) as {
     state: { title: string };
     changePlan: (plan: Plan) => void;
     resetPlan: () => void;
   };
-  const { plans } = useAllPlans();
+  const { plans } = useAllPlans(showEndedPlans);
 
   const deletePlan = useDeletePlan();
 
@@ -63,7 +64,17 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
-      <Text style={styles.headerTitle}>All Study Plans</Text>
+      <View style={styles.headerRow}>
+        <View style={styles.switchRow}>
+          <Text style={styles.switchLabel}>Show Ended</Text>
+          <Switch
+            value={showEndedPlans}
+            onValueChange={setShowEndedPlans}
+            thumbColor={showEndedPlans ? '#2563eb' : '#f1f5f9'}
+            trackColor={{ false: '#cbd5e1', true: '#93c5fd' }}
+          />
+        </View>
+      </View>
       <SwipeListView
         data={plans}
         keyExtractor={(item) => item.id}
@@ -94,6 +105,12 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
                   <CategoryIcon category={plan.category} />
                 </View>
                 <Text style={styles.planTitle}>{plan.title}</Text>
+                {plan.isEnd && (
+                  <View style={styles.endedLabel}>
+                    <Ionicons name="checkmark-done-circle-outline" size={16} color="#10b981" />
+                    <Text style={styles.endedLabelText}>Ended</Text>
+                  </View>
+                )}
                 <View style={styles.categoryLabel}>
                   <Text style={styles.categoryLabelText}>{plan.category || 'General'}</Text>
                 </View>
@@ -151,6 +168,26 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
 };
 
 const styles = StyleSheet.create({
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 24,
+    marginBottom: 12,
+    marginHorizontal: 24,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-end',
+  },
+  switchLabel: {
+    color: '#64748b',
+    fontSize: 15,
+    marginRight: 4,
+    fontWeight: '600',
+  },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -272,6 +309,21 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     backgroundColor: '#2563eb',
     padding: 18,
+  },
+  endedLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#d1fae5',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginLeft: 8,
+  },
+  endedLabelText: {
+    color: '#10b981',
+    fontWeight: 'bold',
+    fontSize: 13,
+    marginLeft: 4,
   },
 });
 
