@@ -1,5 +1,13 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, AppState, AppStateStatus, Vibration } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  AppState,
+  AppStateStatus,
+  Vibration,
+  Platform,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, NavigationProp, useFocusEffect } from '@react-navigation/native';
 import { useRealm } from '@realm/react';
@@ -16,6 +24,7 @@ import {
 } from '../utils/time';
 import CategoryIcon from './CategoryIcon';
 import Streak from './Streak';
+import { useNotifications } from 'hooks/useNotifications';
 
 type TodayPlanCardProps = {
   id: string;
@@ -47,6 +56,7 @@ const TodayPlanCard = ({
 }: TodayPlanCardProps) => {
   const navigation = useNavigation<NavigationProp<any>>();
   const realm = useRealm();
+  const { scheduleNotificationAsync, cancelNotificationAsync } = useNotifications();
   const {
     hours: initialHours,
     minutes: initialMinutes,
@@ -66,7 +76,6 @@ const TodayPlanCard = ({
   const appState = useRef(AppState.currentState);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const notificationIdRef = useRef<string | null>(null);
 
   // Update timer state if duration prop changes
   useEffect(() => {
@@ -85,24 +94,18 @@ const TodayPlanCard = ({
   );
 
   const scheduleNotification = (seconds: number) => {
-    Notifications.cancelScheduledNotificationAsync(notificationIdRef.current || ''); // Cancel previous if any
-    Notifications.scheduleNotificationAsync({
+    cancelNotificationAsync();
+    scheduleNotificationAsync({
       content: {
         title: '🎉 Study Complete!',
         body: `You have completed "${title}". Great job!`,
         sound: true,
+        ...(Platform.OS === 'android' ? { channelId: 'default' } : {}),
       },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds },
-    }).then((id) => {
-      notificationIdRef.current = id;
     });
   };
-  const cancelNotification = () => {
-    if (notificationIdRef.current) {
-      Notifications.cancelScheduledNotificationAsync(notificationIdRef.current);
-      notificationIdRef.current = null;
-    }
-  };
+
   // Start timer
   const startTimer = () => {
     if (status === 'running') return;
@@ -117,7 +120,7 @@ const TodayPlanCard = ({
   const pauseTimer = () => {
     setStatus(id, 'paused');
     setTimerRunning(false);
-    cancelNotification();
+    cancelNotificationAsync();
     if (startTimestamp) {
       const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
       setRemainingSeconds((prev) => Math.max(prev - elapsed, 0));
@@ -255,7 +258,7 @@ const TodayPlanCard = ({
       //   },
       //   trigger: null,
       // });
-      cancelNotification();
+      cancelNotificationAsync();
       navigation.navigate('StudyComplete');
     } catch (e) {
       console.error('Error saving task status:', e);
@@ -271,7 +274,7 @@ const TodayPlanCard = ({
     setStatus(id, 'idle');
     setTimer({ hours: initialHours, minutes: initialMinutes, seconds: initialSeconds });
     setRemainingSeconds(initialHours * 3600 + initialMinutes * 60 + initialSeconds);
-    cancelNotification();
+    cancelNotificationAsync();
   };
 
   return (

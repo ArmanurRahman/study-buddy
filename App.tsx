@@ -1,38 +1,14 @@
 import AppNavigator from 'navigation/AppNavigator';
 import { RealmProvider } from '@realm/react';
-import { Alert, SafeAreaView } from 'react-native';
-import * as Notifications from 'expo-notifications';
+import { SafeAreaView } from 'react-native';
 import { realmSchemas } from './schema';
 import { Provider as PlanProvider } from './context/PlanContext';
 import { Provider as StudyNowProvider } from './context/StudyNowContext';
 import './global.css';
 import { DayProvider } from 'context/DayContext';
-import { useEffect } from 'react';
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+import { NotificationsProvider } from 'hooks/useNotifications';
 
 export default function App() {
-  useEffect(() => {
-    (async () => {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permission Needed',
-          'Study Planner needs notification permission to remind you about your study sessions.',
-          [{ text: 'OK' }]
-        );
-      }
-    })();
-  }, []);
-
   return (
     <RealmProvider
       schema={realmSchemas}
@@ -54,9 +30,11 @@ export default function App() {
       <DayProvider>
         <PlanProvider>
           <StudyNowProvider>
-            <SafeAreaView style={{ flex: 1 }}>
-              <AppNavigator />
-            </SafeAreaView>
+            <NotificationsProvider>
+              <SafeAreaView style={{ flex: 1 }}>
+                <AppNavigator />
+              </SafeAreaView>
+            </NotificationsProvider>
           </StudyNowProvider>
         </PlanProvider>
       </DayProvider>
