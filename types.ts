@@ -29,6 +29,7 @@ export interface Plan {
   startTime?: Date;
   category: string;
   totalHours: number | null;
+  isEnd?: boolean;
 }
 
 export interface TaskStatus {

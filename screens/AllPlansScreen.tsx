@@ -76,6 +76,10 @@ const AllPlansScreen = ({ navigation, route }: TasksScreenProps) => {
               changePlan(plan);
               navigation.navigate('PlanTitle', { edit: true });
             }}
+            onPress={() => {
+              changePlan(plan);
+              navigation.navigate('PlanDetails', { planId: plan.id });
+            }}
             style={styles.cardContainer}>
             {/* Gradient Accent Bar */}
             <LinearGradient

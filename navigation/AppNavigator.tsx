@@ -125,7 +125,6 @@ const CreatePlanStack = () => (
       options={({ navigation, route }) => ({
         title: 'Study Plan Details',
         headerBackTitle: 'Back',
-        headerLeft: () => null,
         headerRight: () => (
           <Ionicons
             name="create-outline"
