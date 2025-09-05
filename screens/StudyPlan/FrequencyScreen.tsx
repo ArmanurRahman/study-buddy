@@ -11,6 +11,7 @@ import {
   Keyboard,
   Alert,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 import Frequency from 'components/Frequency';
 import Clock from 'components/Clock';
@@ -108,10 +109,26 @@ const FrequencyScreen = ({ navigation, route }: TasksScreenProps) => {
         frequency,
         totalHours,
       });
-      Alert.alert('Success', 'Plan added!');
+      if (id) {
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Plan updated!',
+        });
+      } else {
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Plan added!',
+        });
+      }
     } catch (e) {
       console.error('Error saving plan:', e);
-      Alert.alert('Error', 'Could not save plan.');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Could not save plan.',
+      });
     }
   };
 

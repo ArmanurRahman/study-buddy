@@ -81,7 +81,8 @@ export const DayProvider: React.FC<React.PropsWithChildren<{}>> = ({ children })
       if (!lastStatus) {
         // If missed last scheduled day, reset streak
         // But do NOT reset if already updated today (using plan.lastStreakUpdate)
-        if (plan.streak !== 0 && plan.lastStreakUpdate !== currentDay) {
+        const lastUpdateDate = new Date(plan.lastStreakUpdate || 0);
+        if (plan.streak !== 0 && lastUpdateDate < lastScheduledDate) {
           realm.write(() => {
             plan.streak = 0;
             plan.lastStreakUpdate = currentDay;

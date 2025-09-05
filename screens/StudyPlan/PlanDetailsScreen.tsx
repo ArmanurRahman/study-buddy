@@ -85,12 +85,12 @@ const PlanDetailsScreen = () => {
     },
     {
       icon: <Ionicons name="calendar-outline" size={22} color="#2563eb" />,
-      label: 'Total Sessions',
+      label: 'Sessions',
       value: planStatus.length,
     },
     {
       icon: <Ionicons name="time-outline" size={22} color="#2563eb" />,
-      label: 'Total Minutes',
+      label: 'Minutes',
       value: planStatus.reduce((sum: number, s: any) => sum + (s.passedTime || 0), 0),
     },
   ];

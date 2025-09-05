@@ -30,6 +30,7 @@ const HomeStack = () => (
       name="HomeMain"
       component={HomeScreen}
       options={({ navigation }) => ({
+        headerShown: false,
         title: 'Home',
         headerLeft: () => null,
         gestureEnabled: false,
@@ -53,7 +54,12 @@ const TodayStack = () => (
     <Stack.Screen
       name="StudyMain"
       component={TodayPlanScreen}
-      options={{ title: 'Study', headerLeft: () => null, gestureEnabled: false }}
+      options={{
+        title: 'Study',
+        headerLeft: () => null,
+        gestureEnabled: false,
+        headerShown: false,
+      }}
     />
     <Stack.Screen name="StudyNow" component={StudyNowScreen} options={{ title: 'Study Now' }} />
     <Stack.Screen
@@ -69,7 +75,12 @@ const CreatePlanStack = () => (
     <Stack.Screen
       name="AllPlans"
       component={AllPlansScreen}
-      options={{ title: 'Plans', headerLeft: () => null, gestureEnabled: false }}
+      options={{
+        title: 'Plans',
+        headerLeft: () => null,
+        gestureEnabled: false,
+        headerShown: false,
+      }}
     />
     <Stack.Screen
       name="PlanTitle"
@@ -158,6 +169,8 @@ const AppNavigator = () => {
               iconName = 'list-outline';
             } else if (route.name === 'Progress') {
               iconName = 'bar-chart-outline';
+            } else if (route.name === 'Settings') {
+              iconName = 'settings-outline';
             }
 
             return <Ionicons name={iconName} size={size} color={color} />;
@@ -196,6 +209,14 @@ const AppNavigator = () => {
           options={{
             headerShown: false,
             title: 'Progress',
+          }}
+        />
+        <Tab.Screen
+          name="Settings"
+          component={SettingScreen}
+          options={{
+            headerShown: false,
+            title: 'Settings',
           }}
         />
       </Tab.Navigator>

@@ -1,6 +1,7 @@
 import AppNavigator from 'navigation/AppNavigator';
 import { RealmProvider } from '@realm/react';
 import { SafeAreaView } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { realmSchemas } from './schema';
 import { Provider as PlanProvider } from './context/PlanContext';
 import { Provider as StudyNowProvider } from './context/StudyNowContext';
@@ -34,6 +35,7 @@ export default function App() {
               <SafeAreaView style={{ flex: 1 }}>
                 <AppNavigator />
               </SafeAreaView>
+              <Toast position="top" />
             </NotificationsProvider>
           </StudyNowProvider>
         </PlanProvider>
