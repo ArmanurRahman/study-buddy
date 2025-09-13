@@ -139,19 +139,25 @@ const TodayPlanCard = ({
   // Effect to handle ticking
   useEffect(() => {
     if (!timerRunning) return;
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       if (startTimestamp) {
         const elapsed = Math.floor((Date.now() - startTimestamp) / 1000);
         const left = Math.max(remainingSeconds - elapsed, 0);
         setTimer(secondsToTimer(left));
         if (left <= 0) {
-          clearInterval(interval);
+          clearInterval(intervalRef.current!);
+          intervalRef.current = null;
           setTimerRunning(false);
           completeTask();
         }
       }
     }, 1000);
-    return () => clearInterval(interval);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timerRunning, startTimestamp, remainingSeconds]);
 
