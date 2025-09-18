@@ -1,5 +1,6 @@
 import { createContext, FC, PropsWithChildren, useContext, useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
 
 interface NotificationContextType {
   scheduleNotificationAsync: (request: Notifications.NotificationRequestInput) => Promise<void>;
@@ -15,7 +16,12 @@ const NotificationsProvider: FC<PropsWithChildren> = ({ children }) => {
       if (!granted) {
         return console.warn('⚠️ Notification Permissions not granted!');
       }
-
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'default',
+          importance: Notifications.AndroidImportance.HIGH,
+        });
+      }
       Notifications.setNotificationHandler({
         handleNotification: async () => ({
           shouldPlaySound: true,

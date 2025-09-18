@@ -264,7 +264,7 @@ const TodayPlanCard = ({
       //   },
       //   trigger: null,
       // });
-      cancelNotificationAsync();
+      // cancelNotificationAsync();
       navigation.navigate('StudyComplete');
     } catch (e) {
       console.error('Error saving task status:', e);

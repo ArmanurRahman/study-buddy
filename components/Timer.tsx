@@ -111,26 +111,10 @@ const TimerModal = ({
     };
   }, [running]);
 
-  // "1 minute left" warning animation (shake)
   useEffect(() => {
-    if (running && currentSeconds === 0 && totalSeconds > 0) {
-      // Vibrate when study finishes (timer reaches zero)
-    }
-    if (running && currentSeconds === 60) {
-      // Vibrate when 1 minute left
-      Vibration.vibrate(500);
-      // Send a local notification when 1 minute left
-      // Notifications.scheduleNotificationAsync({
-      //   content: {
-      //     title: '⏰ 1 Minute Left!',
-      //     body: `Only 1 minute remaining in your study session: ${title}`,
-      //     sound: true,
-      //   },
-      //   trigger: null, // Send immediately
-      // });
-    }
+    let warningLoop: Animated.CompositeAnimation | null = null;
     if (running && currentSeconds <= 60 && currentSeconds > 0) {
-      Animated.loop(
+      warningLoop = Animated.loop(
         Animated.sequence([
           Animated.timing(warningAnim, {
             toValue: 1,
@@ -148,10 +132,14 @@ const TimerModal = ({
             useNativeDriver: true,
           }),
         ])
-      ).start();
+      );
+      warningLoop.start();
     } else {
       warningAnim.setValue(0);
     }
+    return () => {
+      if (warningLoop) warningLoop.stop();
+    };
   }, [running, currentSeconds]);
   // Vibrate when study finishes (timer reaches zero)
   useEffect(() => {

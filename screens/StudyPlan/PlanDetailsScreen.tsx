@@ -1,14 +1,25 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { StackNavigationProp } from 'node_modules/@react-navigation/stack/lib/typescript/src/types';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { Calendar } from 'react-native-calendars';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { durationToString, formatDuration, humanReadableDate } from 'utils/time';
 import { usePlanById } from 'hooks/usePlanById';
 import { usePlanStatusById } from 'hooks/usePlanStatusById';
 import { usePlanEndById } from 'hooks/usePlanEndById';
+import { TodaysPlan } from 'types';
+
+type RootStackParamList = {
+  Home: undefined;
+  StudyNow: { plan: TodaysPlan };
+};
+
+type StudyDetailsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'StudyNow'>;
 
 const PlanDetailsScreen = () => {
+  const navigation = useNavigation<StudyDetailsScreenNavigationProp>();
+
   const route = useRoute();
   const { planId } = route.params as { planId: string };
   const plan = usePlanById(planId);
@@ -117,24 +128,39 @@ const PlanDetailsScreen = () => {
       <View style={styles.headerCard}>
         <Text style={styles.title}>{plan.title}</Text>
         <Text style={styles.desc}>{plan.description || 'No description provided.'}</Text>
-        {/* End Plan Button */}
-        {!plan.isEnd && (
-          <TouchableOpacity style={styles.endPlanBtn} onPress={handleEndPlan}>
-            <Ionicons
-              name="close-circle-outline"
-              size={20}
-              color="#ef4444"
-              style={{ marginRight: 6 }}
-            />
-            <Text style={styles.endPlanBtnText}>End Plan</Text>
-          </TouchableOpacity>
-        )}
-        {plan.isEnd && (
-          <View style={styles.endedBadge}>
-            <Ionicons name="checkmark-done-circle-outline" size={18} color="#10b981" />
-            <Text style={styles.endedBadgeText}>Plan Ended</Text>
-          </View>
-        )}
+        <View style={{ flexDirection: 'row', gap: 10, marginTop: 12, justifyContent: 'flex-end' }}>
+          {/* {!plan.isEnd && (
+            <TouchableOpacity
+              style={styles.studyNowBtn}
+              onPress={() => navigation.navigate('StudyNow', { plan })}>
+              <Ionicons
+                name="play-circle-outline"
+                size={20}
+                color="#fff"
+                style={{ marginRight: 6 }}
+              />
+              <Text style={styles.studyNowBtnText}>Study Now</Text>
+            </TouchableOpacity>
+          )} */}
+          {/* End Plan Button */}
+          {!plan.isEnd && (
+            <TouchableOpacity style={styles.endPlanBtn} onPress={handleEndPlan}>
+              <Ionicons
+                name="close-circle-outline"
+                size={20}
+                color="#ef4444"
+                style={{ marginRight: 6 }}
+              />
+              <Text style={styles.endPlanBtnText}>End Plan</Text>
+            </TouchableOpacity>
+          )}
+          {plan.isEnd && (
+            <View style={styles.endedBadge}>
+              <Ionicons name="checkmark-done-circle-outline" size={18} color="#10b981" />
+              <Text style={styles.endedBadgeText}>Plan Ended</Text>
+            </View>
+          )}
+        </View>
       </View>
       <View style={styles.headerCard}>
         <Text style={styles.title}>{plan.title}</Text>
@@ -347,6 +373,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
     marginLeft: 4,
+  },
+  studyNowBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2563eb',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    alignSelf: 'flex-end',
+    marginTop: 10,
+  },
+  studyNowBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 15,
   },
 });
 
