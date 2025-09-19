@@ -51,7 +51,13 @@ const PlanDetailsScreen = () => {
     const map: Record<string, number> = {};
     planStatus.forEach((status: any) => {
       if (status.status === 'completed') {
-        const dateStr = new Date(status.date).toISOString().split('T')[0];
+        const dateObj = new Date(status.date);
+        const dateStr =
+          dateObj.getFullYear() +
+          '-' +
+          String(dateObj.getMonth() + 1).padStart(2, '0') +
+          '-' +
+          String(dateObj.getDate()).padStart(2, '0');
         map[dateStr] = (map[dateStr] || 0) + (status.passedTime || 0);
       }
     });
@@ -189,6 +195,7 @@ const PlanDetailsScreen = () => {
         <Calendar
           markingType={'custom'}
           markedDates={markedDates}
+          firstDay={1}
           theme={{
             todayTextColor: '#2563eb',
             arrowColor: '#2563eb',
