@@ -5,7 +5,6 @@ import { useQuery } from '@realm/react';
 import { humanReadableDate, timeStringToHours } from 'utils/time';
 import { PlanStatus } from 'types';
 
-// Example: configure locale if needed
 LocaleConfig.locales['en'] = {
   monthNames: [
     'January',
@@ -35,8 +34,8 @@ LocaleConfig.locales['en'] = {
     'Nov',
     'Dec',
   ],
-  dayNames: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-  dayNamesShort: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+  dayNamesShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
 };
 LocaleConfig.defaultLocale = 'en';
 
@@ -68,7 +67,12 @@ const StudyCalendar = () => {
     const minutesByDate: Record<string, number> = {};
     planStatusResults.filtered('status == "completed"').forEach((status: any) => {
       const dateObj = new Date(status.date);
-      const dateStr = dateObj.toISOString().slice(0, 10);
+      const dateStr =
+        dateObj.getFullYear() +
+        '-' +
+        String(dateObj.getMonth() + 1).padStart(2, '0') +
+        '-' +
+        String(dateObj.getDate()).padStart(2, '0');
       let minutes = 0;
       if (typeof status.passedTime === 'number') {
         minutes = status.passedTime;
@@ -86,8 +90,14 @@ const StudyCalendar = () => {
     return planStatusResults
       .filtered('status == "completed"')
       .filter((status: any) => {
-        const dateStr = new Date(status.date).toISOString().slice(0, 10);
-        return dateStr === selectedDate;
+        const dateObj = new Date(status.date);
+        const localDateStr =
+          dateObj.getFullYear() +
+          '-' +
+          String(dateObj.getMonth() + 1).padStart(2, '0') +
+          '-' +
+          String(dateObj.getDate()).padStart(2, '0');
+        return localDateStr === selectedDate;
       })
       .map((status: any) => {
         const plan = planResults.filtered('_id == $0', status.planId)[0];
@@ -113,6 +123,7 @@ const StudyCalendar = () => {
           borderRadius: 12,
           overflow: 'hidden',
         }}
+        firstDay={1}
         onDayPress={(day) => setSelectedDate(day.dateString)}
         dayComponent={({ date }) => {
           if (!date) return null;
